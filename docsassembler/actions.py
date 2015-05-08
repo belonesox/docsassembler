@@ -74,7 +74,9 @@ def pdfbeamlatex(target, source, env):
     (name, ext) = os.path.splitext(nameext)
     outpdf = os.path.join(path, "--obj", name) + ".pdf"
     outpdfsync = os.path.join(path, "--obj", name) + ".synctex.gz"
+    outlog = os.path.join(path, "--obj", name) + ".log"
     pdfsync = os.path.join(path, name) + ".synctex.gz"
+    texlog = os.path.join(path, name) + ".log"
     curdir = os.getcwd()
     beamdir = path
     os.chdir(path)
@@ -108,6 +110,8 @@ def pdfbeamlatex(target, source, env):
     shutil.copyfile(outpdf, target[0].abspath)
     if os.path.exists(outpdfsync):
         shutil.copy(outpdfsync, pdfsync)
+    if os.path.exists(outlog):
+        shutil.copy(outlog, texlog)
     os.chdir(curdir)
 
 @lib.log_in_out
