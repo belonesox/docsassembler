@@ -73,16 +73,16 @@ def pdfbeamlatex(target, source, env):
     (path, nameext) = os.path.split(filename)
     (name, ext) = os.path.splitext(nameext)
     outpdf = os.path.join(path, "--obj", name) + ".pdf"
-    outpdfsync = os.path.join(path, "--obj", name) + ".synctex.gz"
+    outpdfsync = os.path.join(path, "--obj", name) + ".synctex"
     outlog = os.path.join(path, "--obj", name) + ".log"
-    pdfsync = os.path.join(path, name) + ".synctex.gz"
+    pdfsync = os.path.join(path, name) + ".synctex"
     texlog = os.path.join(path, name) + ".log"
     curdir = os.getcwd()
     beamdir = path
     os.chdir(path)
     ut.createdir("--obj")
     command = ''.join([
-        r'xelatex -synctex=1 -file-line-error-style  -output-directory="--obj" ',
+        r'xelatex -synctex=-1 -file-line-error-style  -output-directory="--obj" ',
         ' -interaction nonstopmode "', nameext, '"'])
     print os.environ["PATH"]
     print command
