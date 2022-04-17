@@ -7,8 +7,8 @@ or between scan phase and builds
 
 import os
 import os.path
-import cPickle as pickle
-import lib
+import pickle
+from .lib import silent_create_tmp_dir
 
 # pylint: disable=W0612
 # :W0612: *Unused variable %r*
@@ -43,17 +43,17 @@ class ProjectDB(dict):
     
     def flush(self):
         """
-        Запись из памяти на диск.
+        Record from memory to disk.
         
-        При записи, нужно обязательно преобразовать
-        словари в сортированные списки,
-        иначе файл будет постоянно меняться,
-        даже если словарь будет оставаться неизменным.
+        When recording, you need to convert
+        Dictionaries in sorted lists,
+        otherwise the file will constantly change,
+        Even if the dictionary remains unchanged.        
         """
-        keys = self.keys()
+        keys = list(self.keys())
         keys.sort()
         sorteddb = [(key, self[key]) for key in keys]
-        lib.silent_create_tmp_dir(os.path.split(self.dbpath)[0])
+        silent_create_tmp_dir(os.path.split(self.dbpath)[0])
         lf = open(self.dbpath, "wb")
         p = pickle.Pickler(lf)
         p.dump(sorteddb)
@@ -62,5 +62,5 @@ class ProjectDB(dict):
     def __del__ (self):
         try:
             self.flush()
-        except Exception, e:
+        except Exception as ex_:
             pass

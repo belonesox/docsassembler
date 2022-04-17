@@ -7,7 +7,7 @@ import os
 import random
 import time
 
-import belonesox_tools.MiscUtils as ut
+# import belonesox_tools.MiscUtils as ut
 import optparse 
 
 # pylint: disable=C0111
@@ -56,7 +56,7 @@ class Helper:
         self.options, args, parser = process_cmd_line() #pylint: disable=W0612
         
         if self.options.outputfile:
-            sys.stdout = open(self.options.outputfile, "w")
+            sys.stdout = open(self.options.outputfile, "w", encoding='utf-8')
     
         self.experiment_scale = 10
         self.experiment_trycount = 2
@@ -71,12 +71,12 @@ class Helper:
    
     def reset_tex(self):
         filename = self.texprefix + ".tex"
-        lf = open(filename, "w")
+        lf = open(filename, "w", encoding='utf-8')
         lf.close()
     
     def print_tex(self, tex_str):
         filename = self.texprefix + ".tex"
-        lf = open(filename, "a+")
+        lf = open(filename, "a+", encoding='utf-8')
         lf.write(tex_str + "\n")
         lf.close()
     
@@ -106,7 +106,8 @@ class Helper:
               }
               """ % vars()
                 graphname = self.dotprefix + prefix + '-%02d.%s' % (frame, ext)
-                ut.string2file(graph_str, graphname)
+                with open(graphname, 'w', encoding='utf-8') as lf:
+                    lf.write(graph_str)
                 
                 tex_str = ur"""
               \begin{frame}
@@ -119,4 +120,6 @@ class Helper:
                 self.print_tex(tex_str.encode("utf-8"))
       
         graphname = self.dotprefix+'-last.%s' % ext
-        ut.string2file(graph_str, graphname)
+        with open(graphname, 'w', encoding='utf-8') as lf:
+            lf.write(graph_str)
+

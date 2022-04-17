@@ -3,11 +3,13 @@
  Модуль сканеров зависимостей файлов
 """
 import os
-import actions as act
-import transformation
-import dependency_analyzer
+
 from lxml import etree
-import lib 
+
+from .actions import python_run
+from .dependency_analyzer import DependencyAnalyzer
+from .transformation import Transformation
+from .lib import *
 
 # pylint: disable=W0612
 # :W0612: *Unused variable %r*
@@ -29,7 +31,7 @@ class DocScanner:
     (передаются с базой проекта).
     """
     def __init__(self, env):
-        self.deps_analyzer = dependency_analyzer.DependencyAnalyzer()
+        self.deps_analyzer = DependencyAnalyzer()
         self.executors = {}
         self.env = env
         env.compile()
@@ -37,7 +39,7 @@ class DocScanner:
     def __repr__(self):
         return "SCANNER"
 
-    @lib.log_in_out
+    @log_in_out
     def svg_scan(self, node, env, path):
         """
            Сканируем SVG-файл, ищем включаемые SVG-файлы
@@ -57,7 +59,7 @@ class DocScanner:
                     deps.append(label)
         return deps
   
-    @lib.log_in_out
+    @log_in_out
     def tex_scan(self, node, env, path):
         """
         Сканирование LaTeX-файла.
@@ -65,7 +67,7 @@ class DocScanner:
         if os.path.splitext(node.abspath)[1] != ".tex":
             return []
         
-        #print "-->!!--> tex-scan ", node.abspath
+        #print("-->!!--> tex-scan ", node.abspath)
 
         def relativizefile(relfile):
             """
@@ -77,7 +79,7 @@ class DocScanner:
                 newrelfile = os.path.join(path, newrelfile)
             return newrelfile
     
-        @lib.log_in_out
+        @log_in_out
         def process(dep):
             """
               Analyze filename, and register all dependency of stack.
@@ -85,7 +87,7 @@ class DocScanner:
             dep = dep.replace("'","").replace('"',"")
             files = self.deps_analyzer.get_all_files(dep)
             if len(files) > 1:
-                for i in xrange(1, len(files)):
+                for i in range(1, len(files)):
                     master = files[i-1]
                     slave  = files[i]
                     ext_slave  = os.path.splitext(slave)[1]
@@ -96,7 +98,7 @@ class DocScanner:
           
                     if ext_master == ".py":
                         if self.executors.get(master, None) is None:
-                            cmd = env.Command(slave, master, act.python_run)
+                            cmd = env.Command(slave, master, python_run)
                             self.executors[master] = cmd.data[0].executor
                         else:
                             en = env.fs.Entry(slave)
@@ -104,8 +106,8 @@ class DocScanner:
                             en.executor = self.executors[master]
                     else:
                         pluginname = ext_master[1:] + "2" + ext_slave[1:]
-                        if hasattr(transformation, pluginname):
-                            env.Command(slave, master, getattr(transformation, pluginname))
+                        if hasattr(Transformation, pluginname):
+                            env.Command(slave, master, getattr(Transformation, pluginname))
       
             deps.append(dep)
     
@@ -139,12 +141,12 @@ class DocScanner:
                 if "writetofile" in rule:
                     wfilename = rule["writetofile"] % g
                     wfilename = relativizefile(wfilename)
-                    lib.silent_create_tmp_dir(os.path.split(wfilename)[0])
+                    silent_create_tmp_dir(os.path.split(wfilename)[0])
                     content = include.group("content")
-                    lf = open(wfilename,"w")
+                    lf = open(wfilename, "w", encoding='utf-8')
                     content = content.replace("\n%","\n")
                     if "encoding" in rule:
-                        content = lib.unicode_anyway(content)
+                        content = unicode_anyway(content)
                         content = content.encode(rule["encoding"])
                     lf.write(content)
                     lf.close()

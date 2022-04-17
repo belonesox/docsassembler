@@ -6,19 +6,19 @@
 import os
 import glob
 import time
+import subprocess
 from   copy import copy
 import re
 import shutil
 import sys
 import stat
-import rusmakeindex as mkidx
-import transformation
+from .rusmakeindex import makeindex
 import tempfile
-import messagefilter as mf
+from .messagefilter import CuteFilter
+from .lib import *
 
-import lib 
 
-import belonesox_tools.MiscUtils as ut
+# import belonesox_tools.MiscUtils as ut
 
 #import texfilter as tx
 
@@ -57,12 +57,13 @@ def inkscape(target, source, env):
     (pathname, ext) = os.path.splitext(target[0].abspath)
     assert(ext in [".pdf"])
     inkscapepath = os.path.join(env.project_db['paths']['inkscape'], 'inkscape')
-    command = ''.join(['"', inkscapepath,
+    scmd = ''.join(['"', inkscapepath,
                        '" --without-gui --export-area-drawing ',
                        ' --export-background-opacity=0 --export-pdf="%s.pdf" ',
                        ' --export-text-to-path "%s"' ]) % (
                         pathname, source[0].abspath )
-    os.system(command)
+    print("************", scmd, '---------------')
+    os.system(scmd)
 
 
 def pdfbeamlatex(target, source, env):
@@ -80,33 +81,37 @@ def pdfbeamlatex(target, source, env):
     curdir = os.getcwd()
     beamdir = path
     os.chdir(path)
-    ut.createdir("--obj")
-    command = ''.join([
+    os.makedirs("--obj", exist_ok=True)
+    scmd = ''.join([
         r'xelatex -synctex=-1 -file-line-error-style  -output-directory="--obj" ',
         ' -interaction nonstopmode "', nameext, '"'])
-    print os.environ["PATH"]
-    print command
+    print(os.environ["PATH"])
+    print(scmd)
     #texfilter = tx.TeXFilter(path)    
-    cutefilter = mf.CuteFilter(path)
-    out= "Mock:" + command
-    out = ut.get_prog_output(command)
-    out = cutefilter(out)
-    print out.encode("utf8")
+    cutefilter = CuteFilter(path)
+    out= "Mock:" + scmd
+    try:
+        out = subprocess.check_output(scmd, shell=True, stderr=subprocess.STDOUT)
+    except Exception as ex_:
+        out = ex_.output
+        pass    
+    out = cutefilter(out.decode("utf8"))
+    print(out)
     env.warnings += cutefilter.warnings
     
-    ut.string2file("\n".join(env.warnings),
-                   filename + ".warnings")
-   
+    with open(filename + ".warnings", 'w', encoding='utf-8') as lf:
+        lf.write("\n".join(env.warnings))
+
     outbcffile = os.path.join(path, "--obj", name) + ".bcf"
     if os.path.exists(outbcffile):
         os.chdir('--obj')
-        command = os.path.join(env.project_db['paths']['tex'],
+        scmd = os.path.join(env.project_db['paths']['tex'],
             'biber "%(outbcffile)s"'
             % vars())
-        os.system(command)
+        os.system(scmd)
         os.chdir('..')
     
-    mkidx.makeindex(env, filename)
+    makeindex(env, filename)
     shutil.copyfile(outpdf, target[0].abspath)
     if os.path.exists(outpdfsync):
         shutil.copy(outpdfsync, pdfsync)
@@ -114,7 +119,7 @@ def pdfbeamlatex(target, source, env):
         shutil.copy(outlog, texlog)
     os.chdir(curdir)
 
-@lib.log_in_out
+@log_in_out
 def extract_algorithms(ps_infile, env):
     """
     Вытаскиваем части кода-алгоритмы
@@ -126,10 +131,10 @@ def extract_algorithms(ps_infile, env):
     algorithm_regexp = re.compile(
         r"(?ms)\#ALGORITHM\s+(?P<name>[a-zA-z-0-9]+)\s*(?P<code>.+?)\s*\#ENDALGORITHM")
     hideline_regexps = [re.compile(r"(?m)^.*\#hide *\n"), re.compile(r"(?m)\n.*\#hide *") ]
-    ls = ut.file2string(ps_infile) 
+    ls = open(ps_infile, 'r', encoding='utf-8').read()
     for algorithm in algorithm_regexp.finditer(ls):
-        algfilename = lib.get_target(ps_infile, algorithm.group('name')+".py")
-        texfilename = lib.get_target(ps_infile, algorithm.group('name')+".tex")
+        algfilename = get_target(ps_infile, algorithm.group('name')+".py")
+        texfilename = get_target(ps_infile, algorithm.group('name')+".tex")
         #lf = open(algfilename, 'w')
         code = algorithm.group('code')
         for r in hideline_regexps:
@@ -145,11 +150,8 @@ def extract_algorithms(ps_infile, env):
         #os.system(ls)
         
         lexer = get_lexer_by_name('python')
-        code = ut.unicodeanyway(code)
         latex_tokens = pygments.lex(code, lexer)
         
-#        sblock = ut.file2string(tempblock)
-#        from pygments.formatters import LatexFormatter
         latex_formatter = LatexFormatter(texcomments = True)
         latex = pygments.format(latex_tokens, latex_formatter)
         stexblock = r"""
@@ -167,11 +169,12 @@ def extract_algorithms(ps_infile, env):
         """ + latex + r"""
 \end{document}
         """
-        ut.string2file(stexblock, texfilename, encoding='utf-8')
+        with open(texfilename, 'w', encoding='utf-8') as lf:
+            lf.write(stexblock)
 
 
 
-@lib.log_in_out
+@log_in_out
 def python_run(target, source, env):
     """
     Запуск Python-файла
@@ -189,12 +192,10 @@ def python_run(target, source, env):
                  nameext, '.obj/log.out"',
                  ])
     
-    #command = ('python "%s" --quiet --batchmode --output="%s/--obj/%s.obj/log.out"'
-    #           % (filename, path, nameext) )
-    cutefilter = mf.CuteFilter(path)
-    out = ut.get_prog_output(scmd)
+    cutefilter = CuteFilter(path)
+    out = subprocess.check_output(scmd, shell=True).decode("utf8")    
     out = cutefilter(out)
-    print out.encode("utf8")
+    print(out)
     env.warnings += cutefilter.warnings
     #pattern = "%s/*" % (os.path.split(target[0].abspath)[0])
     #for f in glob.glob(pattern):
@@ -215,7 +216,7 @@ def log_current_time(target, source, env):
     Log current time and source files list to target
     """
     filename = str(target[0].abspath)
-    lf = open(filename, "w")
+    lf = open(filename, "w", encoding='utf-8')
     ls = "The task completed at %s" % time.ctime()
     lf.write(ls)
     lf.write("\n List of prepared components:\n")
@@ -223,16 +224,16 @@ def log_current_time(target, source, env):
         lf.write(t.abspath+"\t\t\t"+t.get_csig()+"\n")
     lf.close()
 
-@lib.log_in_out
+@log_in_out
 def write_project_path():
     """
      Wrote files with info about paths
     """
-    lib.silent_create_tmp_dir("--obj")
+    silent_create_tmp_dir("--obj")
     filename = os.path.join(os.getcwd(),"--obj/project-path")
     projectpath = os.getcwd()
     projectpath = projectpath.replace("\\","/")
-    lf = open(filename,"w")
+    lf = open(filename, "w", encoding='utf-8')
     lf.write(projectpath)
     lf.close()
 

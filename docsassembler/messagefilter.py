@@ -6,7 +6,7 @@
 import os
 import re
 
-import belonesox_tools.MiscUtils as ut
+# import belonesox_tools.MiscUtils as ut
 
 class CuteFilter:
     """
@@ -44,7 +44,7 @@ class CuteFilter:
         chainre = re.compile(reg)
         
         def formatwarning(filename, line, message):
-            marker = u"--->!!---> "
+            marker = "--->!!---> "
             warning =  marker + ':'.join([filename, line, message])
 
             prefix = ""
@@ -55,7 +55,7 @@ class CuteFilter:
             return warning     
 
         def formatcommonwarning(message):
-            marker = u"--->##---> "
+            marker = "--->##---> "
             warning =  marker + message
             return warning     
 
@@ -63,8 +63,9 @@ class CuteFilter:
         for match in self.output_re.finditer(text_output):
             groups = match.groupdict()
             if groups['dummy']:
-                dummy = ut.unicodeanyway(groups['dummy'])
-                outputlines.append(u"" + dummy )
+                # dummy = ut.unicodeanyway(groups['dummy'])
+                dummy = groups['dummy']
+                outputlines.append("" + dummy )
             else:
                 if groups['file']:
                     file_ = groups['file']
@@ -81,7 +82,7 @@ class CuteFilter:
                     commonerror = groups['commonerror']
                     warning = None
                     if self.suppress_warnings_re.match(commonerror):
-                        outputlines.append(u"" + commonerror)
+                        outputlines.append("" + commonerror)
                     else:
                         warning = formatcommonwarning(commonerror)
                 if warning:        

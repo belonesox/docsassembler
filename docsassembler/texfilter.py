@@ -6,7 +6,7 @@
 import os
 import re
 
-import belonesox_tools.MiscUtils as ut
+# import belonesox_tools.MiscUtils as ut
 
 class TeXFilter:
     """
@@ -27,11 +27,11 @@ class TeXFilter:
         for match in self.output_re.finditer(tex_output):
             groups = match.groupdict()
             if groups['dummy']:
-                dummy = ut.unicodeanyway(groups['dummy'])
-                outputlines.append(u"~~ " + dummy )
+                dummy = groups['dummy'] #ut.unicodeanyway(groups['dummy'])
+                outputlines.append("~~ " + dummy )
             else:
                 realpath = os.path.abspath(os.path.join(self.path, groups['file']))
-                outputlines += [u"--->!!---> " + ':'.join([realpath,
+                outputlines += ["--->!!---> " + ':'.join([realpath,
                                                   groups['line'],
                                                   groups['message']
                                                   ])]

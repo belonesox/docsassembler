@@ -25,68 +25,68 @@ def get_replacement_dict():
     returns translieration dictionary
     """
     replacements = """
-CYRA|À
-cyra|à
-CYRB|Á
-cyrb|á
-CYRV|Â
-cyrv|â
-CYRG|Ã
-cyrg|ã
-CYRD|Ä
-cyrd|ä
-CYRE|Å
-cyre|å
-CYRYO|¨
-cyryo|¸
-CYRZH|Æ
-cyrzh|æ
-CYRZ|Ç
-cyrz|ç
-CYRI|È
-cyri|è
-CYRISHRT|É
-cyrishrt|é
-CYRK|Ê
-cyrk|ê
-CYRL|Ë
-cyrl|ë
-CYRM|Ì
-cyrm|ì
-CYRN|Í
-cyrn|í
-CYRO|Î
-cyro|î
-CYRP|Ï
-cyrp|ï
-CYRR|Ð
-cyrr|ð
-CYRS|Ñ
-cyrs|ñ
-CYRT|Ò
-cyrt|ò
-CYRU|Ó
-cyru|ó
-CYRF|Ô
-cyrf|ô
-CYRH|Õ
-cyrh|õ
-CYRC|Ö
-cyrc|ö
-CYRCH|×
-cyrch|÷
-CYRSH|Ø
-cyrsh|ø
-CYRSHCH|Ù
-cyrshch|ù
-CYRERY|Û
-cyrery|û
-CYREREV|Ý
-cyrerev|ý
-CYRYU|Þ
-cyryu|þ
-CYRYA|ß
-cyrya|ÿ
+CYRA|ï¿½
+cyra|ï¿½
+CYRB|ï¿½
+cyrb|ï¿½
+CYRV|ï¿½
+cyrv|ï¿½
+CYRG|ï¿½
+cyrg|ï¿½
+CYRD|ï¿½
+cyrd|ï¿½
+CYRE|ï¿½
+cyre|ï¿½
+CYRYO|ï¿½
+cyryo|ï¿½
+CYRZH|ï¿½
+cyrzh|ï¿½
+CYRZ|ï¿½
+cyrz|ï¿½
+CYRI|ï¿½
+cyri|ï¿½
+CYRISHRT|ï¿½
+cyrishrt|ï¿½
+CYRK|ï¿½
+cyrk|ï¿½
+CYRL|ï¿½
+cyrl|ï¿½
+CYRM|ï¿½
+cyrm|ï¿½
+CYRN|ï¿½
+cyrn|ï¿½
+CYRO|ï¿½
+cyro|ï¿½
+CYRP|ï¿½
+cyrp|ï¿½
+CYRR|ï¿½
+cyrr|ï¿½
+CYRS|ï¿½
+cyrs|ï¿½
+CYRT|ï¿½
+cyrt|ï¿½
+CYRU|ï¿½
+cyru|ï¿½
+CYRF|ï¿½
+cyrf|ï¿½
+CYRH|ï¿½
+cyrh|ï¿½
+CYRC|ï¿½
+cyrc|ï¿½
+CYRCH|ï¿½
+cyrch|ï¿½
+CYRSH|ï¿½
+cyrsh|ï¿½
+CYRSHCH|ï¿½
+cyrshch|ï¿½
+CYRERY|ï¿½
+cyrery|ï¿½
+CYREREV|ï¿½
+cyrerev|ï¿½
+CYRYU|ï¿½
+cyryu|ï¿½
+CYRYA|ï¿½
+cyrya|ï¿½
 """
     repl_list = replacements.split("\n")[1:-1]
     repl_dict = {}
@@ -100,7 +100,7 @@ def makeindex(env, fname):
     """
     Hack
     """
-    print "**************", fname
+    print("**************", fname)
     (path, nameext) = os.path.split(fname)
     (name, ext) = os.path.splitext(nameext)
     pathname = os.path.join(path, name)
@@ -110,7 +110,7 @@ def makeindex(env, fname):
     idxname = os.path.join(path, '--obj', name + ".idx")
     if not os.path.exists(idxname):
         return
-    lf = open(idxname, 'r')  	
+    lf = open(idxname, 'r', encoding="utf-8")  	
     idxtext = lf.read( )
     lf.close()
     
@@ -120,17 +120,25 @@ def makeindex(env, fname):
         idxtext = idxtext.replace(what, to)    
 
     ilgname = name + ".ilg"
-    cmd = "".join( [ os.path.join(env.project_db['paths']['tex'], 'makeindex'),
+    scmd = "".join( [ os.path.join(env.project_db['paths']['tex'], 'makeindex'),
                     '  -t "',  ilgname, '" < "', idxname, '"'])
-    progin, progout = os.popen2(cmd)
+
+    indtext = ''
+    try:
+        import subprocess
+        indtext = subprocess.check_output(scmd, shell=True).decode("utf8")
+    except:
+        pass    
+
+    # progin, progout = os.popen2(cmd)
     #progin.write(idxtext)
     #progin.close()
-    indtext = progout.read()
+    # indtext = progout.read()
     indname  = os.path.join(path, '--obj', name + ".ind")
     tr = r"\begin{theindex}\addcontentsline{toc}{chapter}{\TheIndexName}"
     indtext = indtext.replace(r"\begin{theindex}", tr)     
 
-    lf = open(indname, 'w')  	
+    lf = open(indname, 'w', encoding="utf-8")  	
     lf.write(indtext)
     lf.close()
     os.chdir(curdir)

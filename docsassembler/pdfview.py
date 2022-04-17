@@ -38,7 +38,7 @@ def main():
                         stdout=subprocess.PIPE, 
                         stderr=subprocess.STDOUT)
     
-    print scmd
+    print(scmd)
     time.sleep(1)    
 
     server = dde.CreateServer()
@@ -50,14 +50,14 @@ def main():
     if pdfpath == path and pdfname == name:
         srcfile = nameext    
     
-    print "Try to connect"
+    print("Try to connect")
     conversation.ConnectTo("SUMATRA", "control")
     ddecmd = ''.join(['[ForwardSearch("', realpath, '", "',
                                           srcfile, '", ', lineno, ',0,0,1)]'])
-    print "Try to exec", ddecmd
+    print("Try to exec", ddecmd)
     conversation.Exec(ddecmd)
 
-    print "PDFViewer connected..."
+    print("PDFViewer connected...")
     server.Destroy()
     
 if __name__ == '__main__':

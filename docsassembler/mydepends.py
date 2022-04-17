@@ -7,11 +7,11 @@
  * «ext2» — target file extension
 """
 import  os
-import belonesox_tools.MiscUtils as ut
-import messagefilter as mf
-import transformation
-import lib
-import actions
+# import belonesox_tools.MiscUtils as ut
+from .transformation import Transformation
+from .lib import get_target
+
+from .actions import python_run, pdfbeamlatex
 import copy
 
 # pylint: disable-msg=W0612
@@ -37,7 +37,7 @@ class MetaAnalyzer:
         «Сканируем» deps-файл, возвращаем зависимости.
         """
         # pylint: disable=R0201
-        contents = node.get_contents().replace('\r','')
+        contents = node.get_text_contents().replace('\r','')
         deps = []
         if contents:
             deps = contents.split('\n')
@@ -46,11 +46,11 @@ class MetaAnalyzer:
             deps += self.analyze_dep(dep, env)
             ext = os.path.splitext(dep)[1]
             if ext in ['.tex']:
-                meta        = lib.get_target(dep, self.META_FILE )
+                meta        = get_target(dep, self.META_FILE )
                 cmd = env.Command(meta, dep, self.extract_meta)   
                 deps.append(meta)
     
-                fulldep     = lib.get_target(dep, self.DEPS_FILE)
+                fulldep     = get_target(dep, self.DEPS_FILE)
                 cmd = env.Command(fulldep, meta, self.meta2deps)
                 deps.append(fulldep.strip())
             
@@ -73,7 +73,7 @@ class MetaAnalyzer:
         files = env.deps_analyzer.get_all_files(dep)
         cmd = None
         if len(files) > 1:
-            for i in xrange(1, len(files)):
+            for i in range(1, len(files)):
                 master = files[i-1]
                 slave  = files[i]
                 ext_slave  = os.path.splitext(slave)[1]
@@ -84,7 +84,7 @@ class MetaAnalyzer:
       
                 if ext_master == ".py":
                     if master not in env.executors:
-                        cmd = env.Command(slave, master, actions.python_run)
+                        cmd = env.Command(slave, master, python_run)
                         env.executors[master] = cmd.data[0].executor
                     else:
                         en = env.fs.Entry(slave)
@@ -92,8 +92,8 @@ class MetaAnalyzer:
                         en.executor = env.executors[master]
                 else:
                     pluginname = ext_master[1:] + "2" + ext_slave[1:]
-                    if hasattr(transformation, pluginname):
-                        cmd = env.Command(slave, master, getattr(transformation, pluginname))
+                    if hasattr(Transformation, pluginname):
+                        cmd = env.Command(slave, master, getattr(Transformation, pluginname))
         
                 #if cmd: 
                 #    deps.append(cmd)
@@ -106,7 +106,7 @@ class MetaAnalyzer:
         «Сканируем» meta-файл, возвращаем зависимости.
         """
         # pylint: disable=R0201
-        contents = node.get_contents().replace('\r','')
+        contents = node.get_text_contents().replace('\r','')
         deps = []
         if contents:
             deps = contents.split('\n')
@@ -116,11 +116,11 @@ class MetaAnalyzer:
             mydepses += self.analyze_dep(dep, env)
             ext = os.path.splitext(dep)[1]
             if ext in ['.tex']:
-                meta        = lib.get_target(dep, self.META_FILE )
+                meta        = get_target(dep, self.META_FILE )
                 cmd = env.Command(meta, dep, self.extract_meta)   
                 mydepses.append(meta)
     
-                fulldep     = lib.get_target(dep, self.DEPS_FILE)
+                fulldep     = get_target(dep, self.DEPS_FILE)
                 cmd = env.Command(fulldep, meta, self.meta2deps)
                 mydepses.append(fulldep.strip())
     
@@ -132,7 +132,8 @@ class MetaAnalyzer:
         return self.dummy(target, source, env)
 
     def dummy(self, target, source, env):
-        ut.string2file("", target[0].abspath)
+        with open(target[0].abspath, 'w', encoding='utf-8') as lf:
+            lf.write("")
         
     def extract_tex(self, target, source, env):
         """
@@ -151,7 +152,7 @@ class MetaAnalyzer:
                 newrelfile = os.path.join(path, newrelfile)
             return newrelfile
     
-        contents = node.get_contents()
+        contents = node.get_text_contents()
         path, filename = os.path.split(node.abspath)
     
         for rule in env.project_db["include_commands"]:
@@ -191,22 +192,25 @@ class MetaAnalyzer:
                 for node in dep:
                     strdeps.append(node.abspath)
         mystr = '\n'.join(strdeps)
-        ut.string2file(mystr, target[0].abspath)
+        with open(target[0].abspath, 'w', encoding='utf-8') as lf:
+            lf.write(mystr)
 
     def meta2deps(self, target, source, env):
         strs = []
         for src in source:
-            srcstr = src.get_contents().replace('\r','')
+            srcstr = src.get_text_contents().replace('\r','')
             strs.append(srcstr.strip())
             srcstrs = srcstr.split('\n')
             for str in srcstrs:
-                depsfile = lib.get_target(str, self.DEPS_FILE)
+                depsfile = get_target(str, self.DEPS_FILE)
                 if os.path.exists(depsfile):
-                    depsfilestr = ut.file2string(depsfile).strip()
+                    depsfilestr = open(depsfile, 'r', encoding='utf-8').read().strip()
                     if depsfilestr: 
                         strs.append(depsfilestr)
         mystr = '\n'.join(strs)
-        ut.string2file(mystr, target[0].abspath)
+        with open(target[0].abspath, 'w', encoding='utf-8') as lf:
+            lf.write(mystr)
+
 
     def register_pdf(self, filename):
         if os.path.sep not in filename:
@@ -215,15 +219,17 @@ class MetaAnalyzer:
         path, name = os.path.split(pathname)
         target = os.path.realpath(pathname + ".pdf")
         source = os.path.realpath(pathname + ".tex")
-        metafile   = lib.get_target(source, self.META_FILE)
-        depsfile   = lib.get_target(source, self.DEPS_FILE)
+        metafile   = get_target(source, self.META_FILE)
+        depsfile   = get_target(source, self.DEPS_FILE)
         cmd = self.env.Command(depsfile, metafile, self.meta2deps)
         cmd = self.env.Command(metafile, source, self.extract_meta)   
-        cmd = self.env.Command(target, [source, depsfile], actions.pdfbeamlatex)
+        cmd = self.env.Command(target, [source, depsfile], pdfbeamlatex)
         auxfile    = os.path.join(path, '--obj', name + '.aux')
         if not os.path.exists(auxfile):
-            ut.createdir(os.path.split(auxfile)[0])
-            ut.string2file("", auxfile)
+            os.makedirs(os.path.split(auxfile)[0], exist_ok=True)
+            # ut.createdir(os.path.split(auxfile)[0])
+            with open(auxfile, 'w', encoding='utf-8') as lf:
+                lf.write("")
         self.env.Depends(cmd, auxfile)
         self.env.Precious(target)    
             

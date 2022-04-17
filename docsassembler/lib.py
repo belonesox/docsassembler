@@ -23,7 +23,7 @@ def silent_create_tmp_dir(dirpath):
     if not os.path.exists(dirpath):
         try:
             os.mkdir(dirpath)
-        except Exception, e:
+        except Exception as ex_:
             (path, d) = os.path.split(dirpath)
             if d != "":
                 silent_create_tmp_dir(path)
@@ -38,7 +38,7 @@ def hide_path(path):
         from win32api import SetFileAttributes
         from win32con import FILE_ATTRIBUTE_HIDDEN
         SetFileAttributes(path, FILE_ATTRIBUTE_HIDDEN)
-    except Exception, e:
+    except Exception as ex_:
         pass
 
 
@@ -104,9 +104,9 @@ def log_in_out(fn):
         name = fn.__name__
         if name == "wrapped":
             pass
-        print "--> %s(%s)" % (name, ", ".join(map(myrepr, chain(v, k.values()))))
+        print("--> %s(%s)" % (name, ", ".join(map(myrepr, chain(v, k.values())))))
         res = fn(*v, **k)
-        print "<-- %s ..." % (name)
+        print("<-- %s ..." % (name))
         return res
     if 1: #__debug__:
         return wrapped
@@ -116,7 +116,7 @@ def file2string(filepath):
     """
     Считать файл и вернуть его содержимое одной строкой
     """
-    lfile = open(filepath, "r")
+    lfile = open(filepath, "r", encoding='utf-8')
     lstr = lfile.read()
     lfile.close()
     return lstr

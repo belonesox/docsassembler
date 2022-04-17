@@ -9,14 +9,14 @@ SCons-фреймворк по большей части
 Так что мы переопределяем этот объект, снабжая его 
 персистент-хешом. 
 """
-
-import projectdb
-import mydepends
-import dependency_analyzer
 import platform
-
 import os
 import re
+
+from .projectdb import ProjectDB
+from .mydepends import MetaAnalyzer
+from .dependency_analyzer import DependencyAnalyzer
+
 
 from SCons.Script import Environment, Scanner
 
@@ -27,8 +27,8 @@ class DocstructEnvironment(Environment):
     def __init__(self, tools_path, **params):
         self.project_path = os.getcwd().replace('\\', '/')
         self.Decider('MD5-timestamp')
-        self.deps_analyzer = dependency_analyzer.DependencyAnalyzer()
-        project_db = projectdb.ProjectDB("--obj/project.pickle")
+        self.deps_analyzer = DependencyAnalyzer()
+        project_db = ProjectDB("--obj/project.pickle")
         
         project_db['paths'] = {
             'graphviz' : '',
@@ -91,7 +91,7 @@ class DocstructEnvironment(Environment):
 
         self.executors = {}
 
-        self.meta_analyzer = mydepends.MetaAnalyzer(self)
+        self.meta_analyzer = MetaAnalyzer(self)
         metascan = Scanner(function = self.meta_analyzer.meta_scan,
                                 skeys = ['.meta'],
                                 recursive = 0)
