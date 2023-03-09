@@ -16,6 +16,7 @@ import subprocess
 from  lxml import etree
 from  .messagefilter import CuteFilter
 from .lib import hide_path
+from pathlib import Path
 
 # pylint: disable-msg=W0612
 # :W0612: *Unused variable %r*
@@ -149,6 +150,20 @@ class Transformation:
                     ' --export-background-opacity=0 --export-eps="%s.eps" ',
                     ' --export-text-to-path "%s"']) % (pathname, source[0].abspath)
         os.system(command)
+
+    @staticmethod
+    def md2tex(env, target, source):
+        """
+        Translate Markdown files to Tex
+        """
+        (pathname, ext) = os.path.splitext(target[0].abspath)
+        template_path = Path(__file__).parent / 'latex/docstruct.latex' 
+        assert(ext in [".tex"])
+        command = ' '.join(['pandoc', '-s',  source[0].abspath, 
+                            '--template', template_path.as_posix(), 'docstruct', '-o', target[0].abspath])
+        os.system(command)
+
+
 
     @staticmethod
     def tex2pdf(target, source, env):

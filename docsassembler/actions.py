@@ -4,7 +4,6 @@
  Свойства проекта и прочие globals передаются через Environment
 """
 import os
-import glob
 import time
 import subprocess
 from   copy import copy
@@ -13,7 +12,6 @@ import shutil
 import sys
 import stat
 from .rusmakeindex import makeindex
-import tempfile
 from .messagefilter import CuteFilter
 from .lib import *
 
@@ -186,16 +184,21 @@ def python_run(target, source, env):
     curdir = os.getcwd()
     os.chdir(path)
     
-    scmd = ''.join([env.project_db['paths']['python'],
-                 '\\python "', filename, '" ',
+    paths = env.project_db['paths']['python']
+    if paths:
+        paths += '\\'
+    scmd = ''.join([
+                 paths,
+                 'python "', filename, '" ',
                  '--output="', path, '/--obj/',
                  nameext, '.obj/log.out"',
                  ])
-    
+    print(scmd)
     cutefilter = CuteFilter(path)
     out = subprocess.check_output(scmd, shell=True).decode("utf8")    
     out = cutefilter(out)
     print(out)
+    # sys.exit()
     env.warnings += cutefilter.warnings
     #pattern = "%s/*" % (os.path.split(target[0].abspath)[0])
     #for f in glob.glob(pattern):
