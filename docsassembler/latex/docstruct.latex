@@ -1,0 +1,5 @@
+\documentclass[12pt, a5paper, landscape, onecolumn, notitlepage, openany]{article}
+\usepackage{docstruct}  
+\begin{document}
+$body$
+\end{document}

@@ -160,7 +160,7 @@ class Transformation:
         template_path = Path(__file__).parent / 'latex/docstruct.latex' 
         assert(ext in [".tex"])
         command = ' '.join(['pandoc', '-s',  source[0].abspath, 
-                            '--template', template_path.as_posix(), 'docstruct', '-o', target[0].abspath])
+                            '--template', template_path.as_posix(), '-o', target[0].abspath])
         os.system(command)
 
 
