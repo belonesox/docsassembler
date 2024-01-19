@@ -1,0 +1,38 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Scons",
+            "type": "python",
+            "request": "launch",
+            "program": "/usr/local/bin/scons",
+            "console": "integratedTerminal",
+            "cwd": "/home/stas/projects/lectures-cs/books/algorithms",
+            "args": ["-D", "book-advanced-algorithms.book.pdf"],
+            "justMyCode": false,
+        },
+        {
+            "name": "das",
+            "type": "python",
+            "request": "launch",
+            "program": "/usr/local/bin/das",
+            "console": "integratedTerminal",
+            "cwd": "/home/stas/projects/-discopal/lectures-cs/books/algorithms",
+            "args": ["book-advanced-algorithms.book.pdf"],
+            "justMyCode": false,
+        },
+        {
+            "name": "thesis",
+            "type": "python",
+            "request": "launch",
+            "program": "/usr/local/bin/scons",
+            "console": "integratedTerminal",
+            "cwd": "/home/stas/projects/-discopal/effective-methods-of-teaching-algorithms/books",
+            "args": ["-D", "thesis.book.pdf"],
+            "justMyCode": false,
+        }
+    ]
+}

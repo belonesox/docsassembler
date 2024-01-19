@@ -15,3 +15,5 @@ build
 *.html
 *.komodoproject
 .komodotools
+*.egg-info
+*.eggs
