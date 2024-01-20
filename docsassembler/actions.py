@@ -14,6 +14,7 @@ import stat
 from .rusmakeindex import makeindex
 from .messagefilter import CuteFilter
 from .lib import *
+from .transformation import set_texinput
 
 
 # import belonesox_tools.MiscUtils as ut
@@ -83,6 +84,7 @@ def pdfbeamlatex(target, source, env):
     scmd = ''.join([
         r'xelatex -synctex=-1 -file-line-error-style  -output-directory="--obj" ',
         ' -interaction nonstopmode "', nameext, '"'])
+    set_texinput()
     print(os.environ["PATH"])
     print(scmd)
     #texfilter = tx.TeXFilter(path)    

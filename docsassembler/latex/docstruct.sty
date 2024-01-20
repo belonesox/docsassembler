@@ -1,0 +1,396 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{docstruct}[2010/01/21 v1.0]
+\RequirePackage{amssymb}
+\RequirePackage{xecyr}
+\RequirePackage{ifxetex}
+\RequirePackage[english,russian]{babel}
+\RequirePackage{ifthen}
+\RequirePackage{mathtext}
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{amsthm}
+\RequirePackage{amsfonts}
+\RequirePackage{fancybox}
+\RequirePackage{fink}
+% \RequirePackage{currfile}
+\RequirePackage{vwcol}
+\RequirePackage{ifthen}
+\RequirePackage{trace}
+\RequirePackage{multicol}
+\RequirePackage{epic}
+\RequirePackage{xspace}
+\RequirePackage{graphicx}
+\RequirePackage{listings}
+\RequirePackage{afterpage}
+\RequirePackage{url}
+\RequirePackage{boxedminipage} 
+\RequirePackage{cmap}
+\RequirePackage{array}
+\RequirePackage{docmute}
+\RequirePackage{fancyvrb}
+\RequirePackage{color}
+\RequirePackage{hyperref}
+%RequirePackage{samepage}
+
+\RequirePackage{titlesec}
+\newcommand{\sectionbreak}{\clearpage}
+
+% \sectionfont{\clearpage}
+% \subsectionfont{\clearpage}
+
+\ifdefined\beamer@currentmode
+\hypersetup{pdfpagemode=FullScreen}
+\else
+\hypersetup{unicode,pagebackref,bookmarksopen,plainpages=false,hypertexnames=false,colorlinks,linkcolor=blue}
+\fi
+
+\RequirePackage[bibencoding=utf8,hyperref=true,bibstyle=alphabetic,citestyle=alphabetic,backend=biber,sortlocale=ru]{biblatex}
+
+\ifdefined\beamer@currentmode
+    \message{!!!!! 11111}
+\fi
+
+
+%\hypersetup{pagebackref,colorlinks,linkcolor=blue,bookmarksopen,plainpages=false,hypertexnames=false}
+\RequirePackage{eepic}
+\RequirePackage{verbatim}
+\RequirePackage{algorithmic}
+\RequirePackage{algorithm}
+\RequirePackage{fontspec}
+\RequirePackage{fontspec}
+\RequirePackage{xltxtra}
+\RequirePackage{float}
+\RequirePackage{fancyhdr}
+%\RequirePackage{pdfsync}
+
+\ifdefined\beamer@currentmode
+    \message{!!!!! 22222}
+\fi
+
+\defaultfontfeatures{Mapping=tex-text}
+
+
+\def\labeldescription#1#2{%
+\expandafter\gdef\csname #1:xreflabel\endcsname{#2}%
+}
+
+\def\indexdef#1#2{%
+\expandafter\gdef\csname #1:index\endcsname{#2}%
+\expandafter\let\csname #1:indexdefined\endcsname=1%
+}
+
+
+\def\iflabeldefined#1#2{%
+\@ifundefined{r@#1}{\xspace}{#2}%
+}%
+
+\newcommand*{\mmh}[1]{0.0#1\textheight}
+\newcommand*{\mmfont}[2]{\fontsize{\mmh{#1}}{\mmh{#2}}\selectfont}
+
+
+\definecolor{MyDarkBlue}{rgb}{0,0.08,0.45} 
+\definecolor{MyDarkGreen}{rgb}{0,0.35,0.03} 
+\definecolor{MyDarkRed}{rgb}{0.5,0.08,0.08} 
+
+\newcommand{\red}[1]{#1}
+\newcommand{\green}[1]{#1}
+\newcommand{\blue}[1]{#1}
+\newcommand{\grey}[1]{#1}
+\newcommand{\norm}[1]{#1}
+
+\newtheorem{theorem}{Теорема}
+\newtheorem{problem}{Задача}
+\newtheorem{lemma}{Лемма}
+\newtheorem{proposition}{Предложение}
+\newtheorem{corollary}{Следствие}
+\newtheorem{definition}{Определение}[section]
+\theoremstyle{definition}
+\newtheorem{exercise}{Упражнение}[section]
+\theoremstyle{remark}
+
+
+\renewcommand{\algorithmicrequire}{\textbf{Вход:}}
+\renewcommand{\algorithmicensure}{\textbf{Выход:}}
+\def\TheIndexName{Предметный указатель}
+\renewcommand{\tablename}{Таблица}
+\renewcommand{\bibname}{Список литературы}
+
+
+\def\en{\selectlanguage{english}}
+\def\ru{\selectlanguage{russian}}
+
+\definecolor{gray}{gray}{0.5}
+
+% \ifthenelse{\equal{\outputformat}{web}}{
+\newenvironment{onlyweb}{}{} 
+% }{
+% \let\onlyweb=\comment
+% \let\endonlyweb=\endcomment
+% }
+
+
+\let\OldLdots\ldots
+\def\ldots{{\,}\OldLdots}
+
+
+\let\OldRef\ref
+\def\xref#1{%
+\OldRef{#1}% 
+\expandafter\ifx\csname #1:xreflabel\endcsname\relax%
+\else%
+\csname #1:xreflabel\endcsname%
+\fi%
+\expandafter\ifx\csname #1:index\endcsname\relax%
+\else%
+\csname #1:index\endcsname%
+\fi%
+}
+
+
+
+\gdef\@font@warning#1{}
+
+\theoremstyle{plain}
+\theoremstyle{remark}
+\newtheorem{info}{Замечание}[section]
+
+%\renewenvironment{proof}{\begin{pf}}{\qed\end{pf}}
+%\def\qed{\relax\ifmmode\hfill \Box\else\unskip\nobreak\hfill $\Box$\fi}
+
+
+
+
+\def\figurename{Алгоритм}
+\def\listfigurename{Список алгоритмов}
+
+
+
+\def\ALG@name{Алгоритм}
+\def\listalgorithmname{Список алгоритмов}
+\floatname{algorithm}{Алгоритм}
+\renewcommand\chaptername{Голова}
+
+
+
+\renewcommand*{\include}[1]{
+
+\InputIfFileExists{\finkdir/#1}{}
+
+}
+
+\def\note{}
+
+\ifx\buildmode\undefined
+\gdef\buildmode{internal}
+\fi
+
+\ifthenelse{\equal{\buildmode}{internal}}{
+\newenvironment{solution}{\par \begin{boxedminipage}{\textwidth} \color{MyDarkBlue}%
+ \textbf{Решение:}\par}{\par \end{boxedminipage} \smallskip \medskip}
+\newenvironment{hint}{\par \textbf{Указание:}\par}{\par \smallskip}
+\newenvironment{dsp}{}{}
+\def\owner#1{\fcolorbox{red}{yellow}{Ответственный:#1}}
+\newenvironment{remark}{\par \begin{boxedminipage}{.9\textwidth} \color{MyDarkRed}\par \info}%
+{\endinfo \par \normalcolor \smallskip \end{boxedminipage}}
+\newenvironment{quiz}{\par \begin{boxedminipage}{\textwidth} \color{MyDarkGreen} \fontsize{11pt}{12pt}\selectfont \par }{\par \normalcolor \end{boxedminipage} \smallskip}
+\renewcommand{\note}[1]{
+\marginpar[\fontsize{5pt}{6pt}\selectfont\color{red}#1]{\fontsize{5pt}{6pt}\selectfont\color{red}#1}
+}
+
+}{
+\let\solution=\comment
+\let\endsolution=\endcomment
+\let\hint=\comment
+\let\endhint=\endcomment
+\let\dsp=\comment
+\let\enddsp=\endcomment
+\let\remark=\comment
+\let\endremark=\endcomment
+\let\quiz=\comment
+\let\endquiz=\endcomment
+\renewcommand{\note}[1]{}
+}
+
+\ifdefined\beamer@currentmode
+    \message{!!!!! beamer defined}
+
+    \mode<article>
+    {
+      \usepackage{fullpage}
+      \usepackage{pgf}
+    }
+
+    \message{!!!!! beamer defined}
+
+    \mode<presentation>
+    {
+      \usetheme{Boadilla}
+      \setbeamercovered{invisible}
+    }
+
+    \date{\today}
+
+    %\institute{ИСП РАН}
+
+    \setbeamertemplate{navigation symbols}{}
+    \setbeamerfont{footline}{size=\Large}
+    %\setbeamertemplate{footline}[page number]
+    \setbeamertemplate{footline}{\hfill\insertframenumber/\inserttotalframenumber~} 
+
+    \renewcommand{\red}[1]{\usebeamercolor[fg]{red}#1\usebeamercolor[fg]{norm}\xspace}
+    \renewcommand{\green}[1]{\usebeamercolor[fg]{green}#1\usebeamercolor[fg]{norm}\xspace}
+    \renewcommand{\blue}[1]{\usebeamercolor[fg]{blue}#1\usebeamercolor[fg]{norm}\xspace}
+    \renewcommand{\grey}[1]{\usebeamercolor[fg]{blue}#1\usebeamercolor[fg]{norm}\xspace}
+    \renewcommand{\norm}{\usebeamercolor[fg]{norm}}
+
+    \setbeamercolor{red}{fg=red} 
+    \setbeamercolor{green}{fg=black!10!green}
+    \setbeamercolor{blue}{fg=white!20!blue}
+    \setbeamercolor{norm}{fg=black}
+\fi
+
+
+\setlength\columnseprule{.4pt}
+\uchyph=0
+
+\def\class#1{\texorpdfstring{{\ensuremath{\cal #1}}%
+\index{Класс!#1}\index{#1}%
+\xspace%
+}{#1}%
+%
+}
+
+\def\classco#1{\texorpdfstring{{\ensuremath{{\sf co}{\cal #1}}}}{co#1}%
+\index{Класс!#1@co#1}\index{co#1}\index{#1@co#1}%
+\xspace}
+
+\newcommand{\PvsNP}{\ensuremath{\class{P} \stackrel ?=\class{NP}}\relax}
+\newcommand*\nuP{\mathrm P/\mathrm{poly}}
+\newcommand{\poly}{\mathop{\mathrm{poly}}\nolimits}
+
+\def\schemeF{$f: \{0,1\}^n \rightarrow \{0,1\}^m$}
+\def\cb{\{0,1\}}
+
+\newcommand*{\MT}[1]{{\ensuremath{\sf #1}}\xspace}
+
+\DeclareMathOperator{\Expect}{\mathbf{E}}
+
+\setlength{\hoffset}{-2.1cm}
+\setlength{\voffset}{-1in}
+
+\setlength{\topmargin}{0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+
+\setlength{\textwidth}{.9\paperwidth}
+\setlength{\textheight}{.85\paperheight}
+
+\def\localbibliography{\printbibliography}
+
+\newcommand*{\localPDF}[2][]{%
+\includegraphics[#1]{\finkdir#2.pdf}%
+}%
+
+\newcommand*{\localSVG}[3][]{%
+\includegraphics[#1]{\finkdir/#2/--obj/#3.svg.obj/obj.pdf}%
+}%
+
+\newcommand*{\projectSVG}[3][]{%
+\includegraphics[#1]{\projectpath/#2/--obj/#3.svg.obj/obj.pdf}%
+}%
+
+\def\includeOnce#1{
+\expandafter\ifx\csname #1:file\endcsname\relax
+\expandafter\let\csname #1:file\endcsname=1
+\def\definitionlabel{#1}
+\input{\projectpath/#1}
+\fi
+}
+
+\def\localInclude#1{
+\def\definitionlabel{#1}
+\input{\finkdir/#1}
+}
+
+
+
+\def\mIfFileExists#1#2#3{%
+  \openin\@inputcheck#1 %
+  \ifeof\@inputcheck
+     \message{#1 -- NO!!!} #3
+  \else
+     \message{#1 -- OK!!!} #2
+  \fi
+  \closein\@inputcheck}
+
+
+\def\standardInclude{
+\IfFileExists{SConstruct}{%
+\def\projectpath{.}
+}{%
+    \IfFileExists{../SConstruct}{%
+\def\projectpath{..}
+    }{%
+        \IfFileExists{../../SConstruct}{%
+\def\projectpath{../..}
+        }{%
+            \IfFileExists{../../../SConstruct}{%
+\def\projectpath{../../..}
+            }{%
+                \IfFileExists{../../../../SConstruct}{%
+\def\projectpath{../../../..}
+                }{%
+                \message{Can not find SConstruct!}%
+                \def\projectpath{.}
+                }%
+            }%
+        }%
+    }%
+}%
+
+
+\mIfFileExists{../../../../../common.tex}{\include{../../../../../common.tex}}{
+\mIfFileExists{../../../../common.tex}{\include{../../../../common.tex}\message{!!!!4}}{
+\mIfFileExists{../../../common.tex}{\include{../../../common.tex}\message{!!!!3}}{
+\mIfFileExists{../../common.tex}{\include{../../common.tex}\message{!!!!2}}{
+\mIfFileExists{../common.tex}{\include{../common.tex}\message{!!!!1}}{
+\mIfFileExists{common.tex}{\include{common.tex}\message{!!!!0}}{}
+}
+}
+}
+}
+}
+
+
+
+
+
+
+}
+
+
+\standardInclude
+
+\setmainfont{Cambria}
+\setromanfont{Cambria}
+\setsansfont{Calibri}
+\setmonofont{Consolas}
+
+\renewcommand{\topfraction}{0.9}	% max fraction of floats at top
+\renewcommand{\bottomfraction}{0.8}	% max fraction of floats at bottom
+
+%   Parameters for TEXT pages (not float pages):
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}     % 2 may work better
+\setcounter{dbltopnumber}{2}    % for 2-column pages
+\renewcommand{\dbltopfraction}{0.9}	% fit big float above 2-col. text
+\renewcommand{\textfraction}{0.07}	% allow minimal text w. figs
+%   Parameters for FLOAT pages (not text pages):
+\renewcommand{\floatpagefraction}{0.9}	% require fuller float pages
+% N.B.: floatpagefraction MUST be less than topfraction !!
+\renewcommand{\dblfloatpagefraction}{0.7}	% require fuller float pages
+
+% remember to use [htp] or [htpb] for placement
+
+\endinput

@@ -31,6 +31,13 @@ from pathlib import Path
 # :W0233: *__init__ method from a non direct base class %r is called*
 #   Used when an __init__ method is called on a class which is not in the direct
 
+def set_texinput():
+    path_to_style_dir = Path(__file__).parent / 'latex'
+    old_texpinputs = ''
+    if 'TEXINPUTS' in os.environ:
+        old_texpinputs = os.environ['TEXINPUTS']
+    os.environ['TEXINPUTS'] = ':'.join([old_texpinputs, path_to_style_dir.as_posix()])
+
 
 class Transformation:
 
@@ -163,8 +170,6 @@ class Transformation:
                             '--template', template_path.as_posix(), '-o', target[0].abspath])
         os.system(command)
 
-
-
     @staticmethod
     def tex2pdf(target, source, env):
         """
@@ -177,6 +182,7 @@ class Transformation:
         tmppdfname = tmpname + ".pdf"
         tmppcropname = tmpname + ".crop.pdf"
         shutil.copy(source[0].abspath, tmptexname)
+        set_texinput()
         scmd = os.path.join(env.project_db['paths']['tex'],
             'xelatex -interaction nonstopmode "%(tmptexname)s"'
             % vars())
