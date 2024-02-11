@@ -9,7 +9,7 @@ from setuptools import setup
 requirements = [ 
     'gladtex',
     'lxml',
-    'scons'
+    'scons==4.4.0'
 ]
 
 setup(
