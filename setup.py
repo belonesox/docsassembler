@@ -8,6 +8,7 @@ from setuptools import setup
 
 requirements = [ 
     'gladtex',
+    'lxml'
 ]
 
 setup(
