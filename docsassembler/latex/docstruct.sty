@@ -394,4 +394,52 @@
 
 % remember to use [htp] or [htpb] for placement
 
+
+%% Parentheses
+\newcommand{\paren}[1]{\unskip\left({#1}\right)}
+\newcommand{\sqparen}[1]{\unskip\left[{#1}\right]}
+\newcommand{\curlyparen}[1]{\unskip\left\{{#1}\right\}}
+\newcommand{\smallparen}[1]{\unskip({#1})}
+\newcommand{\smallsqparen}[1]{\unskip[{#1}]}
+\newcommand{\smallcurlyparen}[1]{\unskip\{{#1}\}}
+
+%% Notation for integers, natural numbers, reals, fractions, sets, cardinalities
+%%and so on
+\newcommand{\nfrac}[2]{\nicefrac{#1}{#2}}
+\def\abs#1{\left| #1 \right|}
+\renewcommand{\norm}[1]{\ensuremath{\left\lVert #1 \right\rVert}}
+
+\newcommand{\floor}[1]{\left\lfloor\, {#1}\,\right\rfloor}
+\newcommand{\ceil}[1]{\left\lceil\, {#1}\,\right\rceil}
+
+\newcommand{\pair}[1]{\left\langle{#1}\right\rangle} %for inner product
+
+%\newcommand\B{\{0,1\}}      % boolean alphabet  use in math mode
+\newcommand\bz{\mathbb Z}
+\newcommand\nat{\mathbb N}
+\newcommand\rea{\mathbb R}
+\newcommand\com{\mathbb{C}}
+\newcommand\plusminus{\{\pm 1\}}
+\newcommand\Bs{\{0,1\}^*}   % B star use in math mode
+\newcommand{\ones}{\mathbbm{1}}
+\newcommand{\eye}{\mathbbm{I}}
+
+% Used to denote bold commands
+% e.g. vectors, matrices
+
+\DeclareRobustCommand{\fracp}[2]{{#1 \overwithdelims()#2}}
+\DeclareRobustCommand{\fracb}[2]{{#1 \overwithdelims[]#2}}
+\newcommand{\marginlabel}[1]%
+{\mbox{}\marginpar{\it{\raggedleft\hspace{0pt}#1}}}
+\newcommand\card[1]{\left| #1 \right|} %cardinality of set S; usage \card{S}
+\renewcommand\complement{\ensuremath{\mathsf{c}}}
+\newcommand{\comp}[1]{\overline{#1}}
+\newcommand{\smallpair}[1]{\langle{#1}\rangle}
+\newcommand{\ol}[1]{\ensuremath{\overline{#1}}\xspace}
+\newcommand{\eps}{\epsilon}
+\DeclareMathOperator{\vol}{\mathsf{vol}}
+
+\newcommand\set[1]{\left\{#1\right\}} %usage \set{1,2,3,,}
+
+
 \endinput

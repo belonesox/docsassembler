@@ -15,6 +15,16 @@
             "justMyCode": false,
         },
         {
+            "name": "das slides",
+            "type": "python",
+            "request": "launch",
+            "program": "/usr/local/bin/das",
+            "console": "integratedTerminal",
+            "cwd": "/home/stas/projects/-discopal/pandoc-slides",
+            "args": ["test.slides.md.html"],
+            "justMyCode": false,
+        },
+        {
             "name": "das algorithms",
             "type": "python",
             "request": "launch",

@@ -159,7 +159,7 @@ class Transformation:
         os.system(command)
 
     @staticmethod
-    def md2tex(env, target, source):
+    def md2tex(target, source, env):
         """
         Translate Markdown files to Tex
         """
@@ -169,6 +169,43 @@ class Transformation:
         command = ' '.join(['pandoc', '-s',  source[0].abspath, 
                             '--template', template_path.as_posix(), '-o', target[0].abspath])
         os.system(command)
+
+
+    @staticmethod
+    def md2html(target, source, env):
+        """
+        Translate Markdown files to HTML
+        """
+        (pathname, ext) = os.path.splitext(target[0].abspath)
+        metadata_path = Path(__file__).parent / 'markdown/metadata.yaml' 
+        s5_path = Path(__file__).parent / 's5' 
+        math_path = Path(__file__).parent / 'math/tex-chtml-full.js' 
+        from_mod = ' --from gfm  '
+        to_mod = ' --to html '
+        if '.slides.' in source[0].abspath:
+            from_mod = ''
+            s5_template_path = f'{s5_path}/our-s5.html' 
+            s5_path = './s5/'
+            slides_mod = f' --to s5  --template {s5_template_path} -V s5-url={s5_path}/our '
+        assert(ext in [".html"])
+# pandoc -s input_file.md -t json | gladtex -P -  | pandoc -s -f json
+        scmd = f'''
+        pandoc -t json -s {from_mod} --filter pandoc-include   
+        --metadata-file "{metadata_path}"  "{source[0].abspath}" 
+        | gladtex -P -d .texpics -c 0019F7 - | pandoc {slides_mod} --output "{target[0].abspath}"  --standalone -f json
+        '''.replace('\n', ' ').strip()
+        #--embed-resources
+        print(scmd)
+        os.system(scmd)
+        # scmd = f'''pandoc {slides_mod} --embed-resources --gladtex  --filter pandoc-include  --standalone --output ".tmp.htex" --metadata-file "{metadata_path}"  "{source[0].abspath}" '''
+        # # print(scmd)
+        # os.system(scmd)
+        # scmd = f'''gladtex -o {target[0].abspath} -d texpics .tmp.htex'''
+        # # scmd = f'''pandoc {slides_mod} --embed-resources --gladtex  --filter pandoc-include  --standalone --output "{target[0].abspath}" --metadata-file "{metadata_path}"  "{source[0].abspath}" '''
+        # #--embed-resources
+        # #--mathjax={math_path}
+        # os.system(scmd)
+
 
     @staticmethod
     def tex2pdf(target, source, env):

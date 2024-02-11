@@ -12,6 +12,7 @@ from .transformation import Transformation
 from .lib import get_target
 
 from .actions import python_run, pdfbeamlatex
+from .transformation import Transformation
 import copy
 
 # pylint: disable-msg=W0612
@@ -233,3 +234,13 @@ class MetaAnalyzer:
         self.env.Depends(cmd, auxfile)
         self.env.Precious(target)    
             
+    def register_html(self, filename):
+        if os.path.sep not in filename:
+            filename = os.path.join(self.env.GetLaunchDir(), filename)
+        pathname = os.path.splitext(os.path.abspath(filename))[0]
+        path, name = os.path.split(pathname)
+        target = os.path.realpath(pathname + ".html")
+        source = pathname
+        if pathname.lower().endswith('readme.md') or 'slides.md' in pathname:
+            cmd = self.env.Command(target, [source], Transformation.md2html)
+            self.env.Precious(target)    

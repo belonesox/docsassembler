@@ -6,8 +6,13 @@
 
 from setuptools import setup
 
+requirements = [ 
+    'gladtex',
+]
+
 setup(
     name='docsassembler',
+    install_requires=requirements,
     version_config=True,
     setup_requires=['setuptools-git-versioning'],
     packages=['docsassembler'],

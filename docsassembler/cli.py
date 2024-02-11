@@ -79,7 +79,9 @@ env.Alias('clean-obj', cmd)
 for filename in targets:
     if filename.endswith(".pdf"):
         env.meta_analyzer.register_pdf(filename)
-            """)
+    if filename.endswith(".html"):
+        env.meta_analyzer.register_html(filename)
+        """)
 
     os.chdir(sconscript_dir)
     fs = SCons.Node.FS.get_default_fs()
