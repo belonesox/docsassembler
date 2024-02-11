@@ -189,11 +189,12 @@ class Transformation:
 
         title_mod_ = ''
         if not title_exists:
-            terms_ = source[0].abspath.split(os.path.sep)[-3:]
+            terms_ = source[0].abspath.split(os.path.sep)[-4:-1]
             terms_.reverse()
             title_ = ' / '.join(terms_)     
             title_mod_ = f'--metadata title="{title_}" '
 
+        slides_mod = ''
         if '.slides.' in source[0].abspath:
             from_mod = ''
             s5_template_path = f'{s5_path}/our-s5.html' 

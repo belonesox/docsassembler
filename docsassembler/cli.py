@@ -40,7 +40,7 @@ def _main(parser):
     targets_top_dir = os.getcwd()
     sconscript_dir = Path(targets_top_dir)
     scons_filename = None
-    while sconscript_dir:
+    while len(sconscript_dir.as_posix())>2:
         scons_filename = 'SConstruct'
         if (sconscript_dir / scons_filename).exists():
             break
@@ -57,6 +57,7 @@ def _main(parser):
         sconscript_dir = parent_
 
     if not (sconscript_dir / scons_filename).exists():
+        sconscript_dir = Path(targets_top_dir)
         with open((sconscript_dir / scons_filename).as_posix(), 'w') as lf:
             lf.write("""
 # -*- coding: utf-8 -*-

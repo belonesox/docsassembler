@@ -25,6 +25,16 @@
             "justMyCode": false,
         },
         {
+            "name": "das ilp",
+            "type": "python",
+            "request": "launch",
+            "program": "/usr/local/bin/das",
+            "console": "integratedTerminal",
+            "cwd": "/i/Работа/Исследования/Рецензирование/2024/ilp-scip",
+            "args": ["readme.md.html"],
+            "justMyCode": false,
+        },
+        {
             "name": "das algorithms",
             "type": "python",
             "request": "launch",
