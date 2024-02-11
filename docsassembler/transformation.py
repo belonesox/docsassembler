@@ -182,6 +182,18 @@ class Transformation:
         math_path = Path(__file__).parent / 'math/tex-chtml-full.js' 
         from_mod = ' --from gfm  '
         to_mod = ' --to html '
+        title_exists = False
+        with open(source[0].abspath, 'r', encoding='utf-8') as lf:
+            input_text_ = lf.read()
+            title_exists = 'title:' in input_text_
+
+        title_mod_ = ''
+        if not title_exists:
+            terms_ = source[0].abspath.split(os.path.sep)[-3:]
+            terms_.reverse()
+            title_ = ' / '.join(terms_)     
+            title_mod_ = f'--metadata title="{title_}" '
+
         if '.slides.' in source[0].abspath:
             from_mod = ''
             s5_template_path = f'{s5_path}/our-s5.html' 
@@ -192,7 +204,9 @@ class Transformation:
         scmd = f'''
         pandoc -t json -s {from_mod} --filter pandoc-include   
         --metadata-file "{metadata_path}"  "{source[0].abspath}" 
-        | gladtex -P -d .texpics -c 0019F7 - | pandoc {slides_mod} --output "{target[0].abspath}"  --standalone -f json
+        | gladtex -P -d .texpics -c 0019F7 - | 
+        pandoc {slides_mod} {title_mod_} --output "{target[0].abspath}"  
+        --standalone --embed-resources -f json
         '''.replace('\n', ' ').strip()
         #--embed-resources
         print(scmd)
