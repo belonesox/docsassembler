@@ -149,7 +149,26 @@ def main():
     _main(parser)
     sys.exit(0)
 
+def systeminstall():
+    packages = f'''
+texlive
+texlive-latex
+texlive-type1cm
+pandoc
+graphviz
+    '''
+
+    for package in packages.strip().split('\n'):
+        for prefix in 'dnf install', 'apt-get install':
+            scmd = f'sudo {prefix} -y {package} || true'
+            print(scmd)
+            os.system(scmd)
+    ...
+
 
 if __name__ == '__main__':
+    if 'systeminstall' in sys.argv:
+        systeminstall()
+        return
     sys.exit(main())
 
