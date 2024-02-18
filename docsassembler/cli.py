@@ -135,6 +135,10 @@ for filename in targets:
 
 
 def main():
+    if 'systeminstall' in sys.argv:
+        systeminstall()
+        return
+
     sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
     sys.argv = [sys.argv[0],  '-D'] + sys.argv[1:]
     print(sys.argv)
@@ -165,10 +169,6 @@ graphviz
             os.system(scmd)
     ...
 
-
 if __name__ == '__main__':
-    if 'systeminstall' in sys.argv:
-        systeminstall()
-        return
     sys.exit(main())
 
