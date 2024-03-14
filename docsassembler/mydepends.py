@@ -241,6 +241,17 @@ class MetaAnalyzer:
         path, name = os.path.split(pathname)
         target = os.path.realpath(pathname + ".html")
         source = pathname
-        if pathname.lower().endswith('readme.md') or 'slides.md' in pathname:
+        if pathname.lower().endswith('readme.md') in pathname:
             cmd = self.env.Command(target, [source], Transformation.md2html)
+            self.env.Precious(target)    
+
+    def register_docx(self, filename):
+        if os.path.sep not in filename:
+            filename = os.path.join(self.env.GetLaunchDir(), filename)
+        pathname = os.path.splitext(os.path.abspath(filename))[0]
+        path, name = os.path.split(pathname)
+        target = os.path.realpath(pathname + ".docx")
+        source = pathname
+        if pathname.lower().endswith('.md'):
+            cmd = self.env.Command(target, [source], Transformation.md2docx)
             self.env.Precious(target)    

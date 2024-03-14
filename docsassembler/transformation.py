@@ -201,13 +201,18 @@ class Transformation:
             s5_path = './s5/'
             slides_mod = f' --to s5  --template {s5_template_path} -V s5-url={s5_path}/our '
         assert(ext in [".html"])
+        text = Path(source[0].abspath).read_text()
+        (Path(target[0].abspath).parent / '.texpics').mkdir(exist_ok=True, parents=True)
+        toc_mod = ''
+        if '<!-- TOC -->' in text:
+            toc_mod = '--toc'
 # pandoc -s input_file.md -t json | gladtex -P -  | pandoc -s -f json
         scmd = f'''
         pandoc -t json -s {from_mod} --filter pandoc-include   
         --metadata-file "{metadata_path}"  "{source[0].abspath}" 
-        | gladtex -P -d .texpics -c 0019F7 - | 
+        | gladtex -P -K -d .texpics -c 0019F7 - | 
         pandoc {slides_mod} {title_mod_} --output "{target[0].abspath}"  
-        --standalone --embed-resources -f json
+        --standalone --embed-resources {toc_mod} -f json
         '''.replace('\n', ' ').strip()
         #--embed-resources
         print(scmd)
@@ -220,6 +225,48 @@ class Transformation:
         # #--embed-resources
         # #--mathjax={math_path}
         # os.system(scmd)
+
+
+    @staticmethod
+    def md2docx(target, source, env):
+        """
+        Translate Markdown files to HTML
+        """
+        (pathname, ext) = os.path.splitext(target[0].abspath)
+        metadata_path = Path(__file__).parent / 'markdown/metadata.yaml' 
+        s5_path = Path(__file__).parent / 's5' 
+        math_path = Path(__file__).parent / 'math/tex-chtml-full.js' 
+        from_mod = ' --from gfm  '
+        to_mod = ' --to html '
+        title_exists = False
+        with open(source[0].abspath, 'r', encoding='utf-8') as lf:
+            input_text_ = lf.read()
+            title_exists = 'title:' in input_text_
+
+        title_mod_ = ''
+        if not title_exists:
+            terms_ = source[0].abspath.split(os.path.sep)[-4:-1]
+            terms_.reverse()
+            title_ = ' / '.join(terms_)     
+            title_mod_ = f'--metadata title="{title_}" '
+
+        assert(ext in [".docx"])
+        text = Path(source[0].abspath).read_text()
+        (Path(target[0].abspath).parent / '.texpics').mkdir(exist_ok=True, parents=True)
+        toc_mod = ''
+        if '<!-- TOC -->' in text:
+            toc_mod = '--toc'
+# pandoc -s input_file.md -t json | gladtex -P -  | pandoc -s -f json
+        scmd = f'''
+        pandoc -t json -s {from_mod} --filter pandoc-include   
+        --metadata-file "{metadata_path}"  "{source[0].abspath}" 
+        |
+        pandoc {title_mod_} --output "{target[0].abspath}"  
+        --standalone --embed-resources {toc_mod} -f json
+        '''.replace('\n', ' ').strip()
+        print(scmd)
+        os.system(scmd)
+        # | gladtex -P -K -d .texpics -c 0019F7 - | 
 
 
     @staticmethod
