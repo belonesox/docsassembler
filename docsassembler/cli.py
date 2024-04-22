@@ -136,6 +136,22 @@ for filename in targets:
     ...
 
 
+def dasws():
+    for args in sys.argv:
+        if args == '--version':
+            sys.stdout.write('3.1.12.3') 
+            return
+
+    md_text = sys.stdin.read() 
+    preview_filename = 'preview.md'
+    Path(preview_filename).write_text(md_text)
+    os.system(f'das {preview_filename}.html >/dev/null 2>&1')
+    html_text = Path(f'{preview_filename}.html').read_text()
+    html_text = html_text.replace('lang xml:lang>', '>')
+    sys.stdout.write(html_text) 
+    ...
+
+
 def main():
     if 'systeminstall' in sys.argv:
         systeminstall()

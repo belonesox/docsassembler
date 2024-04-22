@@ -177,15 +177,31 @@ class Transformation:
         Translate Markdown files to HTML
         """
         (pathname, ext) = os.path.splitext(target[0].abspath)
+        os.chdir(Path(target[0].abspath).parent)
         metadata_path = Path(__file__).parent / 'markdown/metadata.yaml' 
+        pd_filter_path = Path(__file__).parent / 'pandoc/filters' 
+        pd_readers_path = Path(__file__).parent / 'pandoc/readers' 
+
         s5_path = Path(__file__).parent / 's5' 
         math_path = Path(__file__).parent / 'math/tex-chtml-full.js' 
-        from_mod = ' --from gfm  '
-        to_mod = ' --to html '
+        # from_mod = ' --from gfm'
+        pandoc_source_format = 'gfm+definition_lists+sourcepos'
+        os.environ['PANDOC_SOURCE_FORMAT'] = pandoc_source_format
+        from_mod = f' --from {pandoc_source_format}'
+        # from_mod = ' --from commonmark_x+sourcepos'
+        # from_mod = ' --from commonmark_x'
+        # from_mod = ' --from gfm+definition_lists '
+        # from_mod = f' --variable dasws_preview  --from {pd_readers_path}/commonmark_x.lua+sourcepos+definition_lists '
+        
         title_exists = False
         with open(source[0].abspath, 'r', encoding='utf-8') as lf:
             input_text_ = lf.read()
             title_exists = 'title:' in input_text_
+
+        pd_filter_path = Path(__file__).parent / 'pandoc/filters' 
+
+        dasws_mod_ = ''
+        # dasws_mod_ = f' --lua-filter="{pd_filter_path}/sourcepos_sync.lua" --lua-filter="{pd_filter_path}/dasws_output.lua"  '
 
         title_mod_ = ''
         if not title_exists:
@@ -194,29 +210,52 @@ class Transformation:
             title_ = ' / '.join(terms_)     
             title_mod_ = f'--metadata title="{title_}" '
 
+        template_path = Path(__file__).parent / 'pandoc/templates/html/default.html5'
+
         slides_mod = ''
         if '.slides.' in source[0].abspath:
             from_mod = ''
-            s5_template_path = f'{s5_path}/our-s5.html' 
+            # s5_template_path = f'{s5_path}/our-s5.html' 
+            template_path = f'{s5_path}/our-s5.html' 
             s5_path = './s5/'
-            slides_mod = f' --to s5  --template {s5_template_path} -V s5-url={s5_path}/our '
+            slides_mod = f' --to s5  -V s5-url={s5_path}/our '
+
+        template_mod = f'--template {template_path}'    
         assert(ext in [".html"])
         text = Path(source[0].abspath).read_text()
         (Path(target[0].abspath).parent / '.texpics').mkdir(exist_ok=True, parents=True)
         toc_mod = ''
-        if '<!-- TOC -->' in text:
+        if '<!--- TOC --->' in text:
             toc_mod = '--toc'
 # pandoc -s input_file.md -t json | gladtex -P -  | pandoc -s -f json
+        # pandoc -t json -s {from_mod} --lua-filter="{pd_filter_path}/include-files.lua --filter pandoc-include   "
         scmd = f'''
         pandoc -t json -s {from_mod} --filter pandoc-include   
         --metadata-file "{metadata_path}"  "{source[0].abspath}" 
         | gladtex -P -K -d .texpics -c 0019F7 - | 
-        pandoc {slides_mod} {title_mod_} --output "{target[0].abspath}"  
+        pandoc {slides_mod} {title_mod_} {dasws_mod_} {template_mod} --output "{target[0].abspath}"  
         --standalone --embed-resources {toc_mod} -f json
         '''.replace('\n', ' ').strip()
         #--embed-resources
-        print(scmd)
+        Path('debug-all.sh').write_text(scmd)
         os.system(scmd)
+
+        scmd = f'''
+        pandoc -t json -s {from_mod} --filter pandoc-include   
+        --metadata-file "{metadata_path}"  "{source[0].abspath}" 
+        | jq . > debug.json
+        '''.replace('\n', ' ').strip()
+        Path('debug-1st-phase.sh').write_text("#!/bin/sh\n" + scmd)
+
+        scmd = f'''
+        cat debug.json 
+        | gladtex -P -K -d .texpics -c 0019F7 - | 
+        pandoc {slides_mod} {title_mod_} {dasws_mod_} --output "{target[0].abspath}"  
+        --standalone --embed-resources {toc_mod} -f json
+        '''.replace('\n', ' ').strip()
+        Path('debug-2nd-phase.sh').write_text("#!/bin/sh\n" + scmd)
+
+
         # scmd = f'''pandoc {slides_mod} --embed-resources --gladtex  --filter pandoc-include  --standalone --output ".tmp.htex" --metadata-file "{metadata_path}"  "{source[0].abspath}" '''
         # # print(scmd)
         # os.system(scmd)
@@ -236,13 +275,13 @@ class Transformation:
         metadata_path = Path(__file__).parent / 'markdown/metadata.yaml' 
         s5_path = Path(__file__).parent / 's5' 
         math_path = Path(__file__).parent / 'math/tex-chtml-full.js' 
-        from_mod = ' --from gfm  '
+        from_mod = ' --from gfm+definition_lists  '
         to_mod = ' --to html '
         title_exists = False
         with open(source[0].abspath, 'r', encoding='utf-8') as lf:
             input_text_ = lf.read()
             title_exists = 'title:' in input_text_
-
+ 
         title_mod_ = ''
         if not title_exists:
             terms_ = source[0].abspath.split(os.path.sep)[-4:-1]
@@ -254,7 +293,7 @@ class Transformation:
         text = Path(source[0].abspath).read_text()
         (Path(target[0].abspath).parent / '.texpics').mkdir(exist_ok=True, parents=True)
         toc_mod = ''
-        if '<!-- TOC -->' in text:
+        if '<!--- TOC --->' in text:
             toc_mod = '--toc'
 # pandoc -s input_file.md -t json | gladtex -P -  | pandoc -s -f json
         scmd = f'''

@@ -5,6 +5,7 @@
 import os
 
 from lxml import etree
+import re
 
 from .actions import python_run
 from .dependency_analyzer import DependencyAnalyzer
@@ -34,7 +35,7 @@ class DocScanner:
         self.deps_analyzer = DependencyAnalyzer()
         self.executors = {}
         self.env = env
-        env.compile()
+        # env.compile()
 
     def __repr__(self):
         return "SCANNER"
@@ -58,7 +59,63 @@ class DocScanner:
                 if label.endswith(".svg"):
                     deps.append(label)
         return deps
-  
+
+    @log_in_out
+    def md_scan(self, node, env, paths):
+        """
+           Сканируем MD-файл, ищем включаемые MD-файлы
+        """
+        # pylint: disable=R0201
+        if os.path.splitext(node.abspath)[1] != ".md" or not os.path.exists(node.abspath):
+            return []
+        contents = node.get_contents()
+        path, filename = os.path.split(node.abspath)
+        deps = []
+        include_commands = [{
+            'regexp': r'(?s)\n[^#]*?!(include)\s+(?P<relfile>[^\n]+)',
+            'file':   r'',
+            'ext': ''
+        }]
+
+        def relativizefile(relfile):
+            """
+            returb absolute path to file
+            """
+            if os.path.commonprefix([relfile, env.project_path]) == "":
+                arelfile = os.path.join(path, relfile)
+            return arelfile
+
+        for rule in include_commands:
+            formatrule = rule["file"]
+            wantedext = ""
+            if "ext" in rule:
+                wantedext = rule["ext"]
+            re_ = re.compile(rule["regexp"])
+    
+            formatrule = r"%(relfile)s"
+    
+            for include in re_.finditer(contents.decode('utf-8')):
+                g = {
+                    'projectpath': env.project_path,
+                    'currentfilename': filename,
+                    'currentpath': path,
+                    'currentfile': filename,
+                }
+                idx = re_.groupindex.keys()
+                for symname in idx:
+                    g[symname] = include.group(symname)
+                relfile = formatrule % g
+                relfile = relfile.strip()
+        
+                if os.path.splitext(relfile)[1] != wantedext:
+                    relfile += wantedext
+        
+                relfile = relativizefile(relfile)
+                relfile = os.path.realpath(relfile)
+                deps.append(relfile)
+        return deps
+
+
     @log_in_out
     def tex_scan(self, node, env, path):
         """

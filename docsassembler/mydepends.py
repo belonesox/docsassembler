@@ -241,7 +241,7 @@ class MetaAnalyzer:
         path, name = os.path.split(pathname)
         target = os.path.realpath(pathname + ".html")
         source = pathname
-        if pathname.lower().endswith('readme.md') in pathname:
+        if pathname.lower().endswith('.md'):
             cmd = self.env.Command(target, [source], Transformation.md2html)
             self.env.Precious(target)    
 

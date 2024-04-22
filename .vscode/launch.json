@@ -45,13 +45,13 @@
             "justMyCode": false,
         },
         {
-            "name": "das teaching",
+            "name": "security-functions",
             "type": "python",
             "request": "launch",
             "program": "/usr/local/bin/das",
             "console": "integratedTerminal",
-            "cwd": "/home/stas/projects/-discopal/effective-methods-of-teaching-algorithms/books",
-            "args": ["thesis.book.pdf"],
+            "cwd": "/mnt/work2/docmarking/dm-docs-fstek",
+            "args": ["security-functions.md.html"],
             "justMyCode": false,
         },
         {

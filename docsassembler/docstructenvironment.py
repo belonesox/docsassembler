@@ -16,7 +16,7 @@ import re
 from .projectdb import ProjectDB
 from .mydepends import MetaAnalyzer
 from .dependency_analyzer import DependencyAnalyzer
-
+from .scanners import DocScanner 
 
 from SCons.Script import Environment, Scanner
 
@@ -44,45 +44,45 @@ class DocstructEnvironment(Environment):
             project_db['paths']['tex'] = os.path.join(tools_path, r"xetex\bin\win32")
             project_db['paths']['gs'] = os.path.join(tools_path, r"xetex\tlpkg\tlgs\bin")
             os.environ['PATH'] = ';'.join([project_db['paths']['python'],
-                                           project_db['paths']['tex'],
-                                           project_db['paths']['gs'],
-                                           os.environ['PATH'] ])
+                                            project_db['paths']['tex'],
+                                            project_db['paths']['gs'],
+                                            os.environ['PATH'] ])
 
         self.project_db = project_db
         Environment.__init__(self, **params)
         self['ENV']['PATH'] = os.environ['PATH']
 
         self.project_db["include_commands"] = [
-          {
-            'regexp': r'\n[^%]*?\\(include|input|localInclude){(?P<relfile>[^#}]+)}',
-            'file':   '%(relfile)s',
-            'ext':   '.tex'
-          },
-          {
-            'regexp': r'\n[^%]*?\\(verbatiminput){(?P<relfile>[^#}]+)}',
-            'file':   '%(relfile)s',
-            'ext':   ''
-          },
-          {
-            'regexp': r'\n[^%]*?\\(includeOnce){(?P<relfile>[^#}]+)}',
-            'file':   r'\projectpath/%(relfile)s',
-            'ext':    '.tex'
-          },
-          {
-            'regexp': r'(?s)\n[^%]*?\\(localPDF)(\[[^\[]*\])?{(?P<relfile>[^#}]+)}',
-            'file':   r'',
-            'ext':    '.pdf'
-          },
-          {
-            'regexp': r'\n[^%]*?\\(localSVG)(\[.*\])?{(?P<dir>[^#}]+)}{(?P<relfile>[^#}]+)}',
-            'file':   r'%(dir)s/--obj/%(relfile)s.svg.obj/obj.pdf',
-            'ext':    ''
-          },  
-          {
-            'regexp': r'\n[^%]*?\\(projectSVG)(\[.*\])?{(?P<dir>[^#}]+)}{(?P<relfile>[^#}]+)}',
-            'file':   r'\projectpath/%(dir)s/--obj/%(relfile)s.svg.obj/obj.pdf',
-            'ext':    ''
-          }  
+            {
+                'regexp': r'\n[^%]*?\\(include|input|localInclude){(?P<relfile>[^#}]+)}',
+                'file':   '%(relfile)s',
+                'ext':   '.tex'
+            },
+            {
+                'regexp': r'\n[^%]*?\\(verbatiminput){(?P<relfile>[^#}]+)}',
+                'file':   '%(relfile)s',
+                'ext':   ''
+            },
+            {
+                'regexp': r'\n[^%]*?\\(includeOnce){(?P<relfile>[^#}]+)}',
+                'file':   r'\projectpath/%(relfile)s',
+                'ext':    '.tex'
+            },
+            {
+                'regexp': r'(?s)\n[^%]*?\\(localPDF)(\[[^\[]*\])?{(?P<relfile>[^#}]+)}',
+                'file':   r'',
+                'ext':    '.pdf'
+            },
+            {
+                'regexp': r'\n[^%]*?\\(localSVG)(\[.*\])?{(?P<dir>[^#}]+)}{(?P<relfile>[^#}]+)}',
+                'file':   r'%(dir)s/--obj/%(relfile)s.svg.obj/obj.pdf',
+                'ext':    ''
+            },  
+            {
+                'regexp': r'\n[^%]*?\\(projectSVG)(\[.*\])?{(?P<dir>[^#}]+)}{(?P<relfile>[^#}]+)}',
+                'file':   r'\projectpath/%(dir)s/--obj/%(relfile)s.svg.obj/obj.pdf',
+                'ext':    ''
+            }  
         ]    
 
         for item in self.project_db["include_commands"]:
@@ -103,7 +103,11 @@ class DocstructEnvironment(Environment):
                                 recursive = 0)
 
         self.Append(SCANNERS = depsscan)
-            
+
+        ds = DocScanner(self)
+        mdscan = Scanner(function = ds.md_scan, skeys=['.md'], recursive=True)
+        self.Append(SCANNERS = mdscan )
+
         #texscan = Scanner(function = ds.tex_scan, skeys = ['.tex'], recursive = 0)
         #self.Append(SCANNERS = texscan )
         
