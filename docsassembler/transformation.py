@@ -272,7 +272,7 @@ class Transformation:
         Translate Markdown files to HTML
         """
         (pathname, ext) = os.path.splitext(target[0].abspath)
-        metadata_path = Path(__file__).parent / 'markdown/metadata.yaml' 
+        # metadata_path = Path(__file__).parent / 'markdown/metadata.yaml' 
         s5_path = Path(__file__).parent / 's5' 
         math_path = Path(__file__).parent / 'math/tex-chtml-full.js' 
         from_mod = ' --from gfm+definition_lists  '
@@ -289,21 +289,28 @@ class Transformation:
             title_ = ' / '.join(terms_)     
             title_mod_ = f'--metadata title="{title_}" '
 
+
+        reference_mod = ''
+        reference_doc = Path(target[0].abspath).parent / '.das/templates/docx/reference.docx'
+        if reference_doc.exists():
+            reference_mod = f' --reference-doc={reference_doc} '
+
         assert(ext in [".docx"])
         text = Path(source[0].abspath).read_text()
         (Path(target[0].abspath).parent / '.texpics').mkdir(exist_ok=True, parents=True)
         toc_mod = ''
         if '<!--- TOC --->' in text:
             toc_mod = '--toc'
-# pandoc -s input_file.md -t json | gladtex -P -  | pandoc -s -f json
+# pandoc -s input_file.md -t json | gladtex -P -  | pandoc -s -V lang:ru -f json
         scmd = f'''
         pandoc -t json -s {from_mod} --filter pandoc-include   
-        --metadata-file "{metadata_path}"  "{source[0].abspath}" 
+            "{source[0].abspath}" 
         |
         pandoc {title_mod_} --output "{target[0].abspath}"  
-        --standalone --embed-resources {toc_mod} -f json
+        --standalone --embed-resources {toc_mod} {reference_mod} -V lang:ru -f json
         '''.replace('\n', ' ').strip()
         print(scmd)
+        Path('debug-docx.sh').write_text("#!/bin/sh\n" + scmd)
         os.system(scmd)
         # | gladtex -P -K -d .texpics -c 0019F7 - | 
 
