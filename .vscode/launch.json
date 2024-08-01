@@ -55,6 +55,16 @@
             "justMyCode": false,
         },
         {
+            "name": "ruk-op",
+            "type": "python",
+            "request": "launch",
+            "program": "/usr/local/bin/das",
+            "console": "integratedTerminal",
+            "cwd": "/mnt/work6/docmarking/dm-docs-fstek/wiki",
+            "args": ["ruk-admin.das.docx"],
+            "justMyCode": false,
+        },
+        {
             "name": "thesis",
             "type": "python",
             "request": "launch",

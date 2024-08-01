@@ -255,3 +255,25 @@ class MetaAnalyzer:
         if pathname.lower().endswith('.md'):
             cmd = self.env.Command(target, [source], Transformation.md2docx)
             self.env.Precious(target)    
+
+        if pathname.lower().endswith('.das'):
+            cmd = self.env.Command(target, [source], Transformation.das2docx)
+            self.env.Precious(target)    
+
+        if pathname.lower().endswith('.html'):
+            cmd = self.env.Command(target, [source], Transformation.html2docx)
+            self.env.Precious(target)    
+
+    def register_pandoc(self, filename):
+        if os.path.sep not in filename:
+            filename = os.path.join(self.env.GetLaunchDir(), filename)
+        pathname = os.path.splitext(os.path.abspath(filename))[0]
+        path, name = os.path.split(pathname)
+        target = os.path.realpath(pathname + ".pandoc")
+        source = pathname
+        if pathname.lower().endswith('.md'):
+            cmd = self.env.Command(target, [source], Transformation.md2pandoc)
+            self.env.Precious(target)    
+        if pathname.lower().endswith('.html'):
+            cmd = self.env.Command(target, [source], Transformation.html2pandoc)
+            self.env.Precious(target)                

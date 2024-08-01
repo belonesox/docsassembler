@@ -84,6 +84,8 @@ for filename in targets:
         env.meta_analyzer.register_html(filename)
     if filename.endswith(".docx"):
         env.meta_analyzer.register_docx(filename)
+    if filename.endswith(".pandoc"):
+        env.meta_analyzer.register_pandoc(filename)
         """)
 
     os.chdir(sconscript_dir)

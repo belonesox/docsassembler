@@ -81,6 +81,7 @@ class DocScanner:
             """
             returb absolute path to file
             """
+            arelfile = relfile
             if os.path.commonprefix([relfile, env.project_path]) == "":
                 arelfile = os.path.join(path, relfile)
             return arelfile

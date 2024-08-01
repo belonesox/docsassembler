@@ -11,6 +11,14 @@ import sys
 import tempfile
 import shutil
 import subprocess
+import docx
+from docx.enum.style import WD_STYLE_TYPE
+from docx.shared import Inches, Pt, Mm, RGBColor
+# from docx.enum.dml import MSO_THEME_COLOR
+from docx.enum.text import WD_ALIGN_PARAGRAPH 
+from docx import Document
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
 # import belonesox_tools.MiscUtils as ut
 
 from  lxml import etree
@@ -38,6 +46,173 @@ def set_texinput():
         old_texpinputs = os.environ['TEXINPUTS']
     os.environ['TEXINPUTS'] = ':'.join([old_texpinputs, path_to_style_dir.as_posix()])
 
+def add_page_number(paragraph):
+    page_num_run = paragraph.add_run()
+
+    fldChar1 = OxmlElement('w:fldChar')
+    fldChar1.set(qn('w:fldCharType'), 'begin')
+
+    instrText = OxmlElement('w:instrText')
+    instrText.set(qn('xml:space'), 'preserve')
+    instrText.text = "PAGE"
+
+    fldChar2 = OxmlElement('w:fldChar')
+    fldChar2.set(qn('w:fldCharType'), 'end')
+
+    page_num_run._r.append(fldChar1)
+    page_num_run._r.append(instrText)
+    page_num_run._r.append(fldChar2)
+
+def create_footer(doc):
+    footer = doc.sections[0].footer
+    paragraph = footer.add_paragraph()
+    paragraph.alignment = 1  # 1 for center alignment
+    add_page_number(paragraph)
+
+def create_header(doc):
+    header = doc.sections[0].header
+    paragraph = header.add_paragraph()
+    paragraph.alignment = 1  # 1 for center alignment
+    add_page_number(paragraph)
+
+# def set_cell_border(cell, **kwargs):
+#     """
+#     Set cell borders using the passed kwargs.
+#     """
+#     tc = cell._tc
+#     tcPr = tc.get_or_add_tcPr()
+
+#     for edge, border_props in kwargs.items():
+#         edge_prop = f"tcBorders/{edge}"
+#         border = tcPr.find(qn(edge_prop))
+#         if border is None:
+#             border = OxmlElement(edge_prop)
+#             tcPr.append(border)
+
+#         for prop, value in border_props.items():
+#             setattr(border, qn(prop), str(value))
+
+def set_cell_border(cell, **kwargs):
+    """
+    Set cell`s border
+    Usage:
+
+    set_cell_border(
+        cell,
+        top={"sz": 12, "val": "single", "color": "#FF0000", "space": "0"},
+        bottom={"sz": 12, "color": "#00FF00", "val": "single"},
+        start={"sz": 24, "val": "dashed", "shadow": "true"},
+        end={"sz": 12, "val": "dashed"},
+    )
+    """
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+
+    # check for tag existnace, if none found, then create one
+    tcBorders = tcPr.first_child_found_in("w:tcBorders")
+    if tcBorders is None:
+        tcBorders = OxmlElement('w:tcBorders')
+        tcPr.append(tcBorders)
+
+    # list over all available tags
+    for edge in ('start', 'top', 'end', 'bottom', 'insideH', 'insideV'):
+        edge_data = kwargs.get(edge)
+        if edge_data:
+            tag = 'w:{}'.format(edge)
+
+            # check for tag existnace, if none found, then create one
+            element = tcBorders.find(qn(tag))
+            if element is None:
+                element = OxmlElement(tag)
+                tcBorders.append(element)
+
+            # looks like order of attributes is important
+            for key in ["sz", "val", "color", "space", "shadow"]:
+                if key in edge_data:
+                    element.set(qn('w:{}'.format(key)), str(edge_data[key]))
+
+def fix_style_for_table(table, doc):
+    section = doc.sections[0]
+    page_width = section.page_width - section.left_margin - section.right_margin
+    table.autofit = False
+    table.allow_autofit = False
+    table.width = page_width    
+    column_width = page_width / (len(table.columns)+1)
+    # for i, col in enumerate(table.columns):
+    #     if i == 0:
+    #         col.width = int(2 * column_width)
+    #     else:     
+    #         col.width = int(column_width)
+
+    sum_text_row = [0] * len(table.columns)
+    for row in table.rows:
+        for col_, cell in enumerate(row.cells):
+            sum_text_row[col_] += len(cell.text)
+            set_cell_border(
+                cell,
+                top={"val": "single", "sz": "4", "color": "000000", "space": "0"},
+                bottom={"val": "single", "sz": "4", "color": "000000", "space": "0"},
+                end={"val": "single", "sz": "4", "color": "000000", "space": "0"},
+                start={"val": "single", "sz": "4", "color": "000000", "space": "0"}
+            )
+
+    sum_ = sum(sum_text_row)
+    column_widths = [column_width/2 + 3*column_width * sum_text_row[col]/sum_ for col in range(len(table.columns))]
+    sum_ = sum(column_widths)
+    column_widths = [int(page_width/sum_ * col_) for col_ in column_widths]
+    for i, col in enumerate(table.columns):
+        col.width = column_widths[i]
+
+    # # Set font size for the table cells
+    # for row in table.rows:
+    #     for cell in row.cells:
+    #         for paragraph in cell.paragraphs:
+    #             for run in paragraph.runs:
+    #                 run.font.size = Pt(12)
+
+def tune_docx(document):
+    def sv():
+        document.save('wtf.docx')
+    # create_footer(document)        
+    create_header(document)        
+    sv()
+    section = document.sections[0]
+    section.page_height = Mm(297)  
+    section.page_width = Mm(210)   
+    section.left_margin = Mm(25.4/2) 
+    section.right_margin = Mm(25.4/2)
+    section.top_margin = Mm(25.4/2)  
+    section.bottom_margin = Mm(25.4/2)
+    section.header_distance = Mm(12.7) 
+    section.footer_distance = Mm(12.7) 
+    for style_ in document.styles:
+        print(style_.name)
+        if 'font' in dir(style_):
+            if style_.name in [ #'Normal', 
+                                'Text Body', 'Body Text']:
+                style_.font.size = Pt(12)
+                style_.font.name = 'Cambria'
+                style_.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            elif style_.name in ['Source Code']:
+                style_.font.size = Pt(8)
+                style_.font.name = 'Consolas'
+            elif 'Heading' in style_.name:
+                style_.font.name = 'Calibri'
+                sz = 0 
+                try:
+                    sz = int(style_.name[-1:])
+                except:
+                    ...    
+                style_.font.size = Pt(12 + int( (6-sz) ))
+                style_.font.color.rgb = RGBColor(0, 0, 0)
+                ...
+        ...
+        for i, table_ in enumerate(document.tables):
+            fix_style_for_table(table_, document)
+            # print(i, dir(table_))
+
+    sv()
+    ...    
 
 class Transformation:
 
@@ -300,7 +475,7 @@ class Transformation:
         (Path(target[0].abspath).parent / '.texpics').mkdir(exist_ok=True, parents=True)
         toc_mod = ''
         if '<!--- TOC --->' in text:
-            toc_mod = '--toc'
+            toc_mod = '--toc -M toc-title="Содержание" '
 # pandoc -s input_file.md -t json | gladtex -P -  | pandoc -s -V lang:ru -f json
         scmd = f'''
         pandoc -t json -s {from_mod} --filter pandoc-include   
@@ -313,6 +488,203 @@ class Transformation:
         Path('debug-docx.sh').write_text("#!/bin/sh\n" + scmd)
         os.system(scmd)
         # | gladtex -P -K -d .texpics -c 0019F7 - | 
+
+        document = docx.Document(target[0].abspath)
+        tune_docx(document)
+        document.save(target[0].abspath)
+
+
+
+    @staticmethod
+    def das2docx(target, source, env):
+        """
+        Translate DAS files to HTML
+        """
+        (pathname, ext) = os.path.splitext(target[0].abspath)
+        document = docx.Document(target[0].abspath)
+        tune_docx(document)
+
+        import yaml
+        das_ = yaml.unsafe_load(open(source[0].abspath, 'r'))
+        from_mod = ' --from json  '
+        to_mod = ' --to docx '
+
+        title_mod_ = ''
+        if 'title' in das_:
+            title_mod_ = f'''--metadata title="{das_['title']}" '''
+
+        input_files = []
+        curdir = os.getcwd()
+        for input_ in das_['files']:
+            os.chdir(curdir)
+            basedir, infilename = os.path.split(input_)
+            os.chdir(basedir)
+            scmd = f'das {infilename}'
+            os.system(scmd)
+            input_files.append(input_)
+        input_files_mod = " ".join(input_files)    
+
+        os.chdir(curdir)
+        reference_mod = ''
+        reference_doc = Path(target[0].abspath).parent / '.das/templates/docx/reference.docx'
+        if reference_doc.exists():
+            reference_mod = f' --reference-doc={reference_doc} '
+
+        assert(ext in [".docx"])
+        # text = Path(source[0].abspath).read_text()
+        (Path(target[0].abspath).parent / '.texpics').mkdir(exist_ok=True, parents=True)
+        toc_mod = '--toc -M toc-title="Содержание" '
+        scmd = f'''
+        pandoc -t json -s {from_mod} --filter pandoc-include   
+            {input_files_mod}
+        |
+        pandoc {title_mod_} --output "{target[0].abspath}"  
+        --standalone --embed-resources {toc_mod} {reference_mod} -V lang:ru -f json
+        '''.replace('\n', ' ').strip()
+        print(scmd)
+        Path('debug-docx.sh').write_text("#!/bin/sh\n" + scmd)
+        os.system(scmd)
+
+        document = docx.Document(target[0].abspath)
+        tune_docx(document)
+        document.save(target[0].abspath)
+
+        # | gladtex -P -K -d .texpics -c 0019F7 - | 
+
+
+
+    @staticmethod
+    def md2pandoc(target, source, env):
+        """
+        Translate Markdown files to Internal Pandoc format
+        """
+        (pathname, ext) = os.path.splitext(target[0].abspath)
+        os.chdir(Path(target[0].abspath).parent)
+        metadata_path = Path(__file__).parent / 'markdown/metadata.yaml' 
+        pd_filter_path = Path(__file__).parent / 'pandoc/filters' 
+        pd_readers_path = Path(__file__).parent / 'pandoc/readers' 
+
+        s5_path = Path(__file__).parent / 's5' 
+        math_path = Path(__file__).parent / 'math/tex-chtml-full.js' 
+        # from_mod = ' --from gfm'
+        pandoc_source_format = 'gfm+definition_lists+sourcepos'
+        os.environ['PANDOC_SOURCE_FORMAT'] = pandoc_source_format
+        from_mod = f' --from {pandoc_source_format}'
+        
+        title_exists = False
+        with open(source[0].abspath, 'r', encoding='utf-8') as lf:
+            input_text_ = lf.read()
+            title_exists = 'title:' in input_text_
+
+        pd_filter_path = Path(__file__).parent / 'pandoc/filters' 
+
+        dasws_mod_ = ''
+        # dasws_mod_ = f' --lua-filter="{pd_filter_path}/sourcepos_sync.lua" --lua-filter="{pd_filter_path}/dasws_output.lua"  '
+
+        title_mod_ = ''
+        if not title_exists:
+            terms_ = source[0].abspath.split(os.path.sep)[-4:-1]
+            terms_.reverse()
+            title_ = ' / '.join(terms_)     
+            title_mod_ = f'--metadata title="{title_}" '
+
+        assert(ext in [".pandoc"])
+        text = Path(source[0].abspath).read_text()
+        (Path(target[0].abspath).parent / '.texpics').mkdir(exist_ok=True, parents=True)
+        toc_mod = ''
+        if '<!--- TOC --->' in text:
+            toc_mod = '--toc'
+        scmd = f'''
+        pandoc -t json -s {from_mod} --filter pandoc-include   
+        --metadata-file "{metadata_path}"  "{source[0].abspath}" 
+        {title_mod_} {dasws_mod_} --output "{target[0].abspath}"  
+        --standalone --embed-resources {toc_mod} 
+        '''.replace('\n', ' ').strip()
+        # Path('debug-pandoc.sh').write_text("#!/bin/sh\n" + scmd)
+        os.system(scmd)
+
+
+    @staticmethod
+    def html2pandoc(target, source, env):
+        """
+        Translate HTML files to Internal Pandoc format
+        """
+        (pathname, ext) = os.path.splitext(target[0].abspath)
+        os.chdir(Path(target[0].abspath).parent)
+        metadata_path = Path(__file__).parent / 'markdown/metadata.yaml' 
+        from_mod = f' --from html'
+        
+        title_exists = False
+        with open(source[0].abspath, 'r', encoding='utf-8') as lf:
+            input_text_ = lf.read()
+            title_exists = 'title:' in input_text_
+
+        title_mod_ = ''
+        if not title_exists:
+            terms_ = source[0].abspath.split(os.path.sep)[-4:-1]
+            terms_.reverse()
+            title_ = ' / '.join(terms_)     
+            title_mod_ = f'--metadata title="{title_}" '
+
+        assert(ext in [".pandoc"])
+        text = Path(source[0].abspath).read_text()
+        (Path(target[0].abspath).parent / '.texpics').mkdir(exist_ok=True, parents=True)
+        toc_mod = ''
+        if '<!--- TOC --->' in text:
+            toc_mod = '--toc'
+        scmd = f'''
+        pandoc -t json -s {from_mod} --filter pandoc-include   
+        --metadata-file "{metadata_path}"  "{source[0].abspath}" 
+        {title_mod_} --output "{target[0].abspath}"  
+        --standalone --embed-resources {toc_mod} 
+        '''.replace('\n', ' ').strip()
+        # Path('debug-pandoc.sh').write_text("#!/bin/sh\n" + scmd)
+        os.system(scmd)
+
+
+    @staticmethod
+    def html2docx(target, source, env):
+        """
+        Translate HTML files to DOCX
+        """
+        (pathname, ext) = os.path.splitext(target[0].abspath)
+        from_mod = ' --from html  '
+        to_mod = ' --to docx '
+        title_exists = False
+        with open(source[0].abspath, 'r', encoding='utf-8') as lf:
+            input_text_ = lf.read()
+            title_exists = 'title:' in input_text_
+ 
+        title_mod_ = ''
+        if not title_exists:
+            terms_ = source[0].abspath.split(os.path.sep)[-4:-1]
+            terms_.reverse()
+            title_ = ' / '.join(terms_)     
+            title_mod_ = f'--metadata title="{title_}" '
+
+
+        reference_mod = ''
+        reference_doc = Path(target[0].abspath).parent / '.das/templates/docx/reference.docx'
+        if reference_doc.exists():
+            reference_mod = f' --reference-doc={reference_doc} '
+
+        assert(ext in [".docx"])
+        text = Path(source[0].abspath).read_text()
+        (Path(target[0].abspath).parent / '.texpics').mkdir(exist_ok=True, parents=True)
+        toc_mod = ''
+        if '<!--- TOC --->' in text:
+            toc_mod = '--toc -M toc-title="Содержание" '
+# pandoc -s input_file.md -t json | gladtex -P -  | pandoc -s -V lang:ru -f json
+        scmd = f'''
+        pandoc -t json -s {from_mod} --filter pandoc-include   
+            "{source[0].abspath}" 
+        |
+        pandoc {title_mod_} --output "{target[0].abspath}"  
+        --standalone --embed-resources {toc_mod} {reference_mod} -V lang:ru -f json
+        '''.replace('\n', ' ').strip()
+        print(scmd)
+        Path('debug-docx.sh').write_text("#!/bin/sh\n" + scmd)
+        os.system(scmd)
 
 
     @staticmethod
