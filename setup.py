@@ -9,7 +9,8 @@ from setuptools import setup
 requirements = [ 
     'gladtex',
     'lxml',
-    'python-docx',
+    'docx',
+    'exceptions',
     'pandoc-include',
     'scons==4.4.0'
 ]
