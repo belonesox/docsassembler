@@ -20,6 +20,17 @@ setup(
     version_config=True,
     setup_requires=['setuptools_git_versioning'],
     packages=['docsassembler'],
+    package_data={
+        "docsassembler": """
+csl/*
+latex/*
+markdown/*
+pandoc/*
+pyhelpers/*
+s5/*
+	""".split('\n'),
+    },
+    include_package_data=True,
     entry_points={
         'console_scripts': [
             'docsassembler=docsassembler.cli:main',
