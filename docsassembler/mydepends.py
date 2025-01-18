@@ -245,6 +245,18 @@ class MetaAnalyzer:
             cmd = self.env.Command(target, [source], Transformation.md2html)
             self.env.Precious(target)    
 
+    def register_tex(self, filename):
+        if os.path.sep not in filename:
+            filename = os.path.join(self.env.GetLaunchDir(), filename)
+        pathname = os.path.splitext(os.path.abspath(filename))[0]
+        path, name = os.path.split(pathname)
+        target = os.path.realpath(pathname + ".tex")
+        source = pathname
+        if pathname.lower().endswith('.md'):
+            cmd = self.env.Command(target, [source], Transformation.md2tex)
+            self.env.Precious(target)    
+
+
     def register_docx(self, filename):
         if os.path.sep not in filename:
             filename = os.path.join(self.env.GetLaunchDir(), filename)

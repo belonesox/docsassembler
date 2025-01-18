@@ -26,6 +26,10 @@ from  .messagefilter import CuteFilter
 from .lib import hide_path
 from pathlib import Path
 
+CSL_PATH = Path(__file__).parent / 'csl/ieee.csl' 
+BIB_MOD_STD = f' --bibliography=bibliography.bib  --citeproc -M link-citations=true --csl {CSL_PATH.as_posix()} '
+
+
 # pylint: disable-msg=W0612
 # :W0612: *Unused variable %r*
 #   Used when a variable is defined but not used.
@@ -341,9 +345,16 @@ class Transformation:
         (pathname, ext) = os.path.splitext(target[0].abspath)
         template_path = Path(__file__).parent / 'latex/docstruct.latex' 
         assert(ext in [".tex"])
-        command = ' '.join(['pandoc', '-s',  source[0].abspath, 
-                            '--template', template_path.as_posix(), '-o', target[0].abspath])
-        os.system(command)
+
+        bib_mod = ''
+        if Path('bibliography.bib').exists():
+            bib_mod = BIB_MOD_STD
+
+        scmd = f'''
+pandoc -s   {source[0].abspath} {bib_mod} --template {template_path.as_posix()}  -o   {target[0].abspath} 
+'''.replace('\n', ' ').strip()
+
+        os.system(scmd)
 
 
     @staticmethod
@@ -395,6 +406,11 @@ class Transformation:
             s5_path = './s5/'
             slides_mod = f' --to s5  -V s5-url={s5_path}/our '
 
+        bib_mod = ''
+        if Path('bibliography.bib').exists():
+            bib_mod = BIB_MOD_STD
+            from_mod = f' --from markdown+citations+definition_lists '
+
         template_mod = f'--template {template_path}'    
         assert(ext in [".html"])
         text = Path(source[0].abspath).read_text()
@@ -406,9 +422,9 @@ class Transformation:
         # pandoc -t json -s {from_mod} --lua-filter="{pd_filter_path}/include-files.lua --filter pandoc-include   "
         scmd = f'''
         pandoc -t json -s {from_mod} --filter pandoc-include   
-        --metadata-file "{metadata_path}"  "{source[0].abspath}" 
+        --metadata-file "{metadata_path}" {bib_mod} "{source[0].abspath}" 
         | gladtex -P -K -d .texpics -c 0019F7 - | 
-        pandoc {slides_mod} {title_mod_} {dasws_mod_} {template_mod} --output "{target[0].abspath}"  
+        pandoc {slides_mod} {title_mod_} {dasws_mod_} {template_mod} {bib_mod} --output "{target[0].abspath}"  
         --standalone --embed-resources {toc_mod} -f json
         '''.replace('\n', ' ').strip()
         #--embed-resources
@@ -457,6 +473,11 @@ class Transformation:
             input_text_ = lf.read()
             title_exists = 'title:' in input_text_
  
+        bib_mod = ''
+        if Path('bibliography.bib').exists():
+            bib_mod = BIB_MOD_STD
+            from_mod = f' --from markdown+citations+definition_lists '
+
         title_mod_ = ''
         if not title_exists:
             terms_ = source[0].abspath.split(os.path.sep)[-4:-1]
@@ -478,7 +499,7 @@ class Transformation:
             toc_mod = '--toc -M toc-title="Содержание" '
 # pandoc -s input_file.md -t json | gladtex -P -  | pandoc -s -V lang:ru -f json
         scmd = f'''
-        pandoc -t json -s {from_mod} --filter pandoc-include   
+        pandoc -t json -s {from_mod} {bib_mod} --filter pandoc-include   
             "{source[0].abspath}" 
         |
         pandoc {title_mod_} --output "{target[0].abspath}"  
