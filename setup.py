@@ -18,7 +18,10 @@ setup(
     name='docsassembler',
     install_requires=requirements,
     version_config=True,
-    setup_requires=['setuptools_git_versioning'],
+    setuptools_git_versioning={
+       'enabled': True,
+    },
+    setup_requires=['setuptools-git-versioning'],
     packages=['docsassembler'],
     package_data={
         "docsassembler": """

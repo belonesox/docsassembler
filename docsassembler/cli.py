@@ -56,6 +56,9 @@ def _main(parser):
 
         sconscript_dir = parent_
 
+    if scons_filename is None:
+        scons_filename = '.sconstruct'
+
     if not (sconscript_dir / scons_filename).exists():
         sconscript_dir = Path(targets_top_dir)
         with open((sconscript_dir / scons_filename).as_posix(), 'w') as lf:
