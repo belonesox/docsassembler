@@ -3,6 +3,7 @@
 import sys
 import os
 import re
+import shutil
 from pathlib import Path
 
 import SCons
@@ -192,6 +193,14 @@ graphviz
             scmd = f'sudo {prefix} -y {package} || true'
             print(scmd)
             os.system(scmd)
+
+    docstruct_target_dir = Path('~/texmf/tex/latex/docstruct').expanduser()
+    print("*"*30)
+    print(docstruct_target_dir)
+    print("*"*30)
+    docstruct_target_dir.mkdir(parents=True, exist_ok=True)
+    docstruct_sty = Path(__file__).parent / 'latex/docstruct.sty' 
+    shutil.copy(docstruct_sty, docstruct_target_dir)
     ...
 
 if __name__ == '__main__':

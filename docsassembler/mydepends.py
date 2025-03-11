@@ -159,8 +159,10 @@ class MetaAnalyzer:
         for rule in env.project_db["include_commands"]:
             formatrule = rule["file"]
             wantedext = ""
+            allowed_exts = rule.get('allowed_exts', [])
             if "ext" in rule:
                 wantedext = rule["ext"]
+                allowed_exts.append(wantedext)
             re_ = rule["re"]
     
             if formatrule == "":
@@ -178,7 +180,9 @@ class MetaAnalyzer:
                     g[symname] = include.group(symname)
                 relfile = formatrule % g
         
-                if os.path.splitext(relfile)[1] != wantedext:
+
+                cur_ext = os.path.splitext(relfile)[1]
+                if cur_ext not in allowed_exts:        
                     relfile += wantedext
         
                 relfile = relativizefile(relfile)

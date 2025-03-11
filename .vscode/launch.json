@@ -45,6 +45,16 @@
             "justMyCode": false,
         },
         {
+            "name": "denis",
+            "type": "python",
+            "request": "launch",
+            "program": "~/.local/bin/das",
+            "console": "integratedTerminal",
+            "cwd": "/home/stas/projects/-discopal/medical/ml-prediction-parkinson/Presentation",
+            "args": ["прогноз_риска_БП.beam.pdf"],
+            "justMyCode": false,
+        },
+        {
             "name": "security-functions",
             "type": "python",
             "request": "launch",

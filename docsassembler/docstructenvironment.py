@@ -56,6 +56,7 @@ class DocstructEnvironment(Environment):
             {
                 'regexp': r'\n[^%]*?\\(include|input|localInclude){(?P<relfile>[^#}]+)}',
                 'file':   '%(relfile)s',
+                'allowed_exts':   ['.pgf'],
                 'ext':   '.tex'
             },
             {
