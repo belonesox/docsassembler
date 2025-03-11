@@ -194,7 +194,8 @@ graphviz
             print(scmd)
             os.system(scmd)
 
-    os.system("sudo dnf install texlive-scheme-full --exclude='texlive-*-doc*' -y ")
+    os.system("sudo dnf install texlive-scheme-full -y ")
+    #--exclude='texlive-*-doc*'
 
     docstruct_target_dir = Path('~/texmf/tex/latex/docstruct').expanduser()
     print("*"*30)
